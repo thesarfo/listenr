@@ -14,16 +14,16 @@ const Landing: React.FC<LandingProps> = ({ onSignIn }) => {
           </div>
           <h2 className="text-lg md:text-xl font-black tracking-tighter uppercase">Listenr</h2>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={onSignIn}
-            className="flex items-center justify-center rounded-full h-9 md:h-10 px-4 md:px-6 border border-white/20 text-sm font-bold hover:bg-white/5 transition-all text-slate-300"
+            className="flex items-center justify-center rounded px-3 py-1.5 border border-white/20 text-xs font-bold hover:bg-white/5 transition-colors text-slate-300"
           >
             Sign in
           </button>
           <button
             onClick={onSignIn}
-            className="flex items-center justify-center rounded-full h-9 md:h-10 px-4 md:px-6 bg-primary text-background-dark text-sm font-bold hover:opacity-90 transition-all"
+            className="flex items-center justify-center rounded px-3 py-1.5 bg-primary text-background-dark text-xs font-bold hover:opacity-90 transition-opacity"
           >
             Get started
           </button>
@@ -39,17 +39,17 @@ const Landing: React.FC<LandingProps> = ({ onSignIn }) => {
           <p className="mt-6 text-base md:text-xl text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
             Log albums, write reviews, and build collections. Share your taste with friends and discover what others are listening to.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={onSignIn}
-              className="flex items-center justify-center gap-2 bg-primary text-background-dark h-14 md:h-16 px-8 md:px-12 rounded-full text-base md:text-lg font-black tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-xl shadow-primary/20"
+              className="flex items-center justify-center gap-1.5 bg-primary text-background-dark px-5 py-2.5 rounded text-sm font-bold hover:opacity-90 transition-opacity"
             >
               <span>Get started free</span>
-              <span className="material-symbols-outlined font-bold">arrow_forward</span>
+              <span className="material-symbols-outlined text-base font-bold">arrow_forward</span>
             </button>
             <button
               onClick={onSignIn}
-              className="flex items-center justify-center gap-2 h-14 md:h-16 px-8 md:px-12 rounded-full border border-white/20 text-sm md:text-base font-bold hover:bg-white/5 transition-all"
+              className="flex items-center justify-center px-5 py-2.5 rounded border border-white/20 text-sm font-bold hover:bg-white/5 transition-colors"
             >
               Sign in
             </button>
@@ -89,10 +89,10 @@ const Landing: React.FC<LandingProps> = ({ onSignIn }) => {
           <p className="text-slate-500 text-sm md:text-base font-medium mb-6">Build your legacy, one log at a time.</p>
           <button
             onClick={onSignIn}
-            className="flex items-center justify-center gap-2 bg-primary text-background-dark h-14 px-10 rounded-full text-base font-black hover:scale-[1.02] active:scale-[0.98] transition-transform"
+            className="inline-flex items-center justify-center gap-1.5 bg-primary text-background-dark px-5 py-2.5 rounded text-sm font-bold hover:opacity-90 transition-opacity"
           >
             <span>Start your diary</span>
-            <span className="material-symbols-outlined font-bold">arrow_forward</span>
+            <span className="material-symbols-outlined text-base font-bold">arrow_forward</span>
           </button>
         </section>
       </main>

@@ -92,7 +92,7 @@ const Login: React.FC<LoginProps> = ({ onNavigate }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-14 md:h-12 bg-primary text-background-dark font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 touch-manipulation"
+            className="w-full py-2.5 bg-primary text-background-dark font-bold text-sm rounded disabled:opacity-50 touch-manipulation hover:opacity-90 transition-opacity"
           >
             {loading ? '...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>

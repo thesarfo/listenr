@@ -123,6 +123,7 @@ export const lists = {
 // Explore
 export const explore = {
   trending: (limit = 10) => request<unknown[]>(`/explore/trending?limit=${limit}`),
+  popular: (limit = 10) => request<unknown[]>(`/explore/popular?limit=${limit}`),
   popularWithFriends: (limit = 10) => request<unknown[]>(`/explore/popular-with-friends?limit=${limit}`),
   genres: () => request<string[]>('/explore/genres'),
 };

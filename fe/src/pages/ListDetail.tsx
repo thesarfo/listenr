@@ -242,7 +242,7 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-background-dark font-bold text-sm transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-background-dark font-bold text-xs transition-colors"
                 >
                   <span className="material-symbols-outlined text-lg">share</span>
                   {copied ? 'Copied!' : 'Share list'}
@@ -252,9 +252,9 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
                     <button
                       type="button"
                       onClick={() => setEditMode(true)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 hover:bg-white/5 font-bold text-sm"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded border border-white/20 hover:bg-white/5 font-bold text-xs"
                     >
-                      <span className="material-symbols-outlined text-lg">edit</span>
+                      <span className="material-symbols-outlined text-base">edit</span>
                       Edit
                     </button>
                     {isOwner && (
@@ -262,17 +262,17 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
                         <button
                           type="button"
                           onClick={() => setShowAddCollaborator(true)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-background-dark font-bold text-sm transition-colors"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-background-dark font-bold text-xs transition-colors"
                         >
-                          <span className="material-symbols-outlined text-lg">group_add</span>
+                          <span className="material-symbols-outlined text-base">group_add</span>
                           Add collaborator
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeleteConfirm(true)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 font-bold text-sm"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 font-bold text-xs"
                         >
-                          <span className="material-symbols-outlined text-lg">delete</span>
+                          <span className="material-symbols-outlined text-base">delete</span>
                           Delete list
                         </button>
                       </>

@@ -64,7 +64,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
           <h2 className="text-xl font-black tracking-tighter uppercase">Listenr</h2>
         </div>
-        <button onClick={onComplete} className="flex min-w-[100px] cursor-pointer items-center justify-center rounded-full h-10 px-6 border border-white/10 text-sm font-bold hover:bg-white/5 transition-all">
+        <button onClick={onComplete} className="flex cursor-pointer items-center justify-center rounded px-3 py-1.5 border border-white/20 text-xs font-bold hover:bg-white/5 transition-colors">
           Skip
         </button>
       </header>
@@ -91,13 +91,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div className="relative group flex gap-2">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
               <input
-                className="flex-1 h-16 bg-white/5 border-none rounded-2xl pl-12 pr-6 text-lg focus:ring-2 focus:ring-primary/20 placeholder:text-slate-600 transition-all"
+                className="flex-1 h-10 bg-white/5 border border-white/10 rounded pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary placeholder:text-slate-600 transition-all"
                 placeholder="Search by album title or artist..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
-              <button onClick={handleSearch} disabled={searching} className="bg-primary text-background-dark px-6 h-16 rounded-2xl font-bold disabled:opacity-50">
+              <button onClick={handleSearch} disabled={searching} className="bg-primary text-background-dark px-4 h-10 rounded font-bold text-sm disabled:opacity-50 flex items-center justify-center shrink-0">
                 {searching ? '...' : 'Search'}
               </button>
             </div>
@@ -147,7 +147,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
 
           <div className="pt-8">
-            <button onClick={handleComplete} className="w-full md:w-auto min-w-[280px] flex items-center justify-center gap-2 bg-primary text-background-dark h-16 rounded-full text-lg font-black tracking-tight hover:scale-105 hover:shadow-2xl hover:shadow-primary/30 active:scale-95 transition-all">
+            <button onClick={handleComplete} className="w-full md:w-auto min-w-[200px] flex items-center justify-center gap-2 bg-primary text-background-dark px-5 py-2.5 rounded text-sm font-bold hover:opacity-90 transition-opacity">
               <span>Continue to Profile</span>
               <span className="material-symbols-outlined font-bold">arrow_forward</span>
             </button>

@@ -132,6 +132,12 @@ const App: React.FC = () => {
   }
 
     if (!user) {
+    // Root path always shows Landing (must be first)
+    const path = window.location.pathname;
+    const rootPath = path.replace(/\/$/, '') || '/';
+    if (rootPath === '/' || path === '/landing' || path === '/landing/') {
+      return <Landing onSignIn={() => { setCurrentView('login'); window.history.pushState({}, '', '/login'); }} />;
+    }
     // Allow viewing shared profiles or lists without login
     if (currentView === 'profile' && selectedProfileUsername) {
       const guestNavigate = (view: View, albumId?: string, username?: string, listId?: string) => {
@@ -155,10 +161,6 @@ const App: React.FC = () => {
           </div>
         </div>
       );
-    }
-    const path = window.location.pathname;
-    if (path === '/' || path === '' || path === '/landing') {
-      return <Landing onSignIn={() => { setCurrentView('login'); window.history.pushState({}, '', '/login'); }} />;
     }
     if (path === '/login' || path === '/login/' || currentView === 'login') {
       return <Login onNavigate={setCurrentView} />;

@@ -177,7 +177,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   type="button"
                   key={genre}
                   onClick={() => setSelectedGenre(genre)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border touch-manipulation ${selectedGenre === genre ? 'bg-primary text-background-dark border-primary' : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border-white/10'}`}
+                  className={`shrink-0 px-3 py-1 rounded text-[10px] font-bold whitespace-nowrap transition-colors border touch-manipulation ${selectedGenre === genre ? 'bg-primary text-background-dark border-primary' : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border-white/10'}`}
                 >
                   {genre}
                 </button>
@@ -426,7 +426,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   </div>
                   <p className="text-xs font-bold truncate text-white group-hover/usr:text-primary transition-colors">{u.username}</p>
                 </button>
-                <button type="button" className="text-[9px] font-bold uppercase bg-primary/10 text-primary px-3 py-1.5 rounded-full hover:bg-primary hover:text-background-dark transition-all shrink-0">
+                <button type="button" className="text-[9px] font-bold uppercase bg-primary/10 text-primary px-2.5 py-1 rounded hover:bg-primary hover:text-background-dark transition-colors shrink-0">
                   Follow
                 </button>
               </div>

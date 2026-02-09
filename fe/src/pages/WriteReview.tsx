@@ -55,8 +55,15 @@ const WriteReview: React.FC<WriteReviewProps> = ({ albumId, onCancel, onPost }) 
     );
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handlePost();
+    }
+  };
+
   return (
-    <div className="relative min-h-screen flex flex-col items-center bg-background-dark">
+    <div className="relative min-h-screen flex flex-col items-center bg-background-dark pb-24 md:pb-0">
       <header className="w-full max-w-5xl px-6 py-6 flex items-center justify-between sticky top-0 z-50 bg-background-dark/80 backdrop-blur-md">
         <button onClick={onCancel} className="text-[#92c9a4] hover:text-white transition-colors text-sm font-bold tracking-widest uppercase">
           Cancel
@@ -68,10 +75,11 @@ const WriteReview: React.FC<WriteReviewProps> = ({ albumId, onCancel, onPost }) 
         <button
           onClick={handlePost}
           disabled={isPosting}
-          className="bg-primary hover:bg-primary/90 text-background-dark px-8 py-2.5 rounded-xl font-black text-sm transition-all transform active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
+          className="hidden md:flex items-center justify-center bg-primary text-background-dark px-6 py-2 rounded font-bold text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
         >
           {isPosting ? 'Posting...' : 'Post'}
         </button>
+        <div className="w-16 md:hidden" />
       </header>
 
       <main className="w-full max-w-3xl px-6 py-12 flex flex-col items-center gap-12">
@@ -102,9 +110,20 @@ const WriteReview: React.FC<WriteReviewProps> = ({ albumId, onCancel, onPost }) 
             placeholder="Write your thoughts..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
       </main>
+
+      <div className="fixed bottom-0 left-0 right-0 md:hidden z-50 p-4 bg-background-dark/95 backdrop-blur-md border-t border-white/10">
+        <button
+          onClick={handlePost}
+          disabled={isPosting}
+          className="w-full py-3 bg-primary text-background-dark font-bold rounded disabled:opacity-50 hover:opacity-90 transition-opacity touch-manipulation"
+        >
+          {isPosting ? 'Posting...' : 'Post'}
+        </button>
+      </div>
     </div>
   );
 };
