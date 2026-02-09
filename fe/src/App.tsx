@@ -12,6 +12,7 @@ import ListDetail from './pages/ListDetail';
 import LogAlbum from './pages/LogAlbum';
 import WriteReview from './pages/WriteReview';
 import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -19,18 +20,20 @@ import type { View } from './types';
 
 function parsePath(): { view: View; albumId: string | null; username: string | null; listId: string | null } {
   const p = window.location.pathname;
+  const pNorm = p.replace(/\/$/, '') || '/';
   const uMatch = p.match(/^\/u\/([^/]+)\/?$/);
   const lMatch = p.match(/^\/l\/([^/]+)\/?$/);
   const albumMatch = p.match(/^\/album\/([^/]+)\/?$/);
   if (uMatch) return { view: 'profile', albumId: null, username: uMatch[1], listId: null };
   if (lMatch) return { view: 'list-detail', albumId: null, username: null, listId: lMatch[1] };
   if (albumMatch) return { view: 'album-detail', albumId: albumMatch[1], username: null, listId: null };
-  if (p === '/lists' || p === '/lists/') return { view: 'lists', albumId: null, username: null, listId: null };
-  if (p === '/diary' || p === '/diary/') return { view: 'diary', albumId: null, username: null, listId: null };
-  if (p === '/log' || p === '/log/') return { view: 'log-album', albumId: null, username: null, listId: null };
-  if (p === '/login' || p === '/login/') return { view: 'login', albumId: null, username: null, listId: null };
-  if (p === '/admin' || p === '/admin/') return { view: 'admin', albumId: null, username: null, listId: null };
-  return { view: 'home', albumId: null, username: null, listId: null };
+  if (pNorm === '/lists') return { view: 'lists', albumId: null, username: null, listId: null };
+  if (pNorm === '/diary') return { view: 'diary', albumId: null, username: null, listId: null };
+  if (pNorm === '/log') return { view: 'log-album', albumId: null, username: null, listId: null };
+  if (pNorm === '/login') return { view: 'login', albumId: null, username: null, listId: null };
+  if (pNorm === '/admin') return { view: 'admin', albumId: null, username: null, listId: null };
+  if (pNorm === '/' || pNorm === '') return { view: 'home', albumId: null, username: null, listId: null };
+  return { view: 'not-found', albumId: null, username: null, listId: null };
 }
 
 function pathFor(view: View, albumId?: string, username?: string, listId?: string): string {
@@ -121,6 +124,12 @@ const App: React.FC = () => {
             onNavigate={navigate}
           />
         );
+      case 'admin':
+        return <Admin onNavigate={navigate} />;
+      case 'not-found':
+        return <NotFound onNavigate={navigate} />;
+      case 'landing':
+        return <Home onNavigate={navigate} />;
       default:
         return <Home onNavigate={navigate} />;
     }
@@ -193,6 +202,28 @@ const App: React.FC = () => {
         </div>
       );
     }
+    if (currentView === 'not-found') {
+      const guestNavigate = (view: View) => {
+        setCurrentView(view);
+        const path = view === 'login' ? '/login' : '/';
+        window.history.pushState({}, '', path);
+      };
+      return (
+        <div className="flex h-screen flex-col overflow-hidden bg-background-dark text-white font-display">
+          <main className="flex-1 overflow-y-auto flex items-center justify-center custom-scrollbar">
+            <NotFound onNavigate={guestNavigate} />
+          </main>
+          <div className="border-t border-white/10 p-4 flex justify-center gap-4">
+            <button onClick={() => guestNavigate('home')} className="text-primary hover:underline text-sm font-bold">
+              Go home
+            </button>
+            <button onClick={() => guestNavigate('login')} className="text-primary hover:underline text-sm font-bold">
+              Sign in
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <Login onNavigate={setCurrentView} />;
   }
 
@@ -227,7 +258,6 @@ const App: React.FC = () => {
             currentView={currentView}
             onNavigate={handleNavigate}
             onLog={() => { setCurrentView('log-album'); setIsSidebarOpen(false); }}
-            isAdmin={user?.is_admin ?? false}
           />
         </>
       )}

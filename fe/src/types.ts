@@ -26,6 +26,6 @@ export interface Review {
   type: 'review' | 'listen';
 }
 
-export type View = 'landing' | 'onboarding' | 'home' | 'album-detail' | 'diary' | 'profile' | 'lists' | 'list-detail' | 'log-album' | 'write-review' | 'login' | 'admin';
+export type View = 'landing' | 'onboarding' | 'home' | 'album-detail' | 'diary' | 'profile' | 'lists' | 'list-detail' | 'log-album' | 'write-review' | 'login' | 'admin' | 'not-found';
 
 export type NavigateFn = (view: View, albumId?: string, username?: string, listId?: string) => void;
