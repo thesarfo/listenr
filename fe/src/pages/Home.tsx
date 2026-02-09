@@ -33,7 +33,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('all');
   const [feedReviews, setFeedReviews] = useState<Review[]>([]);
   const [trending, setTrending] = useState<AlbumBrief[]>([]);
-  const [popularWithFriends, setPopularWithFriends] = useState<AlbumBrief[]>([]);
+  const [popular, setPopular] = useState<AlbumBrief[]>([]);
   const [browse, setBrowse] = useState<AlbumBrief[]>([]);
   const [browseTotal, setBrowseTotal] = useState(0);
   const [browseLoading, setBrowseLoading] = useState(true);
@@ -48,7 +48,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     explore.trending(6).then((d) => setTrending((d as AlbumBrief[]) || []));
-    explore.popularWithFriends(5).then((d) => setPopularWithFriends((d as AlbumBrief[]) || []));
+    explore.popular(10).then((d) => setPopular((d as AlbumBrief[]) || []));
     explore.genres().then((g) => setGenres((g as string[]) || []));
     users.recommended().then(setRecommended);
   }, []);
@@ -326,12 +326,12 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           )}
         </section>
 
-        {/* Popular with Friends */}
-        {(popularWithFriends.length > 0 || browse.length > 0) && (
+        {/* Popular (most reviewed) */}
+        {(popular.length > 0 || browse.length > 0) && (
           <section className="space-y-4">
             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 border-l-2 border-primary pl-3">Popular</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
-              {(popularWithFriends.length > 0 ? popularWithFriends : browse).slice(0, 10).map((a, i) => (
+              {(popular.length > 0 ? popular : browse).slice(0, 10).map((a, i) => (
                 <div key={a.id || i} className="space-y-2 group cursor-pointer" onClick={() => onNavigate('album-detail', a.id)}>
                   <div className="aspect-square rounded-xl overflow-hidden bg-white/5 transition-transform group-hover:scale-[1.02]">
                     <img src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)} className="w-full h-full object-cover" alt={a.title || 'Album'} />
