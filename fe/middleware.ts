@@ -3,7 +3,7 @@
  * When Facebook, Twitter, Discord, etc. fetch /u/:username or /l/:listId,
  * we serve HTML with proper meta tags instead of the SPA.
  */
-import { rewrite } from "@vercel/functions";
+import { next, rewrite } from "@vercel/functions";
 
 const CRAWLER_AGENTS = [
   "facebookexternalhit",
