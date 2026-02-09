@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Review, NavigateFn } from '../types';
 import { reviews, albums, users, explore } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
@@ -42,6 +42,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const [genres, setGenres] = useState<string[]>([]);
   const [recommended, setRecommended] = useState<{ id: string; username: string; avatar_url?: string }[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
+  const browseResultsRef = useRef<HTMLDivElement>(null);
   const BROWSE_PAGE_SIZE = 24;
 
   useEffect(() => {
@@ -119,9 +120,17 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchBrowse(searchQuery, selectedGenre, 0, false), searchQuery ? 350 : 0);
+    const timer = setTimeout(() => {
+      fetchBrowse(searchQuery, selectedGenre, 0, false);
+    }, searchQuery ? 350 : 0);
     return () => clearTimeout(timer);
   }, [searchQuery, selectedGenre, fetchBrowse]);
+
+  useEffect(() => {
+    if ((searchQuery || selectedGenre) && !browseLoading && browse.length > 0) {
+      browseResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [searchQuery, selectedGenre, browseLoading, browse.length]);
 
   const loadMoreBrowse = () => {
     fetchBrowse(searchQuery, selectedGenre, browse.length, true);
@@ -140,12 +149,21 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchBrowse(searchQuery, selectedGenre)}
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full pl-9 pr-20 py-2 text-sm rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary"
             />
+            <button
+              type="button"
+              onClick={() => fetchBrowse(searchQuery, selectedGenre)}
+              className="absolute right-10 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 p-1 touch-manipulation"
+              aria-label="Search"
+            >
+              <span className="material-symbols-outlined text-lg">search</span>
+            </button>
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1 touch-manipulation"
                 aria-label="Clear search"
               >
                 <span className="material-symbols-outlined text-base">close</span>
@@ -155,16 +173,18 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           <div className="-mx-4 md:mx-0 px-4 md:px-0 overflow-x-auto overflow-y-hidden pb-2 album-scroll">
             <div className="flex flex-nowrap gap-2 min-w-max">
               <button
+                type="button"
                 onClick={() => setSelectedGenre(null)}
-                className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all ${!selectedGenre ? 'bg-primary text-background-dark' : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/10'}`}
+                className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all touch-manipulation ${!selectedGenre ? 'bg-primary text-background-dark' : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/10'}`}
               >
                 All
               </button>
               {genres.map((genre) => (
                 <button
+                  type="button"
                   key={genre}
                   onClick={() => setSelectedGenre(genre)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border ${selectedGenre === genre ? 'bg-primary text-background-dark border-primary' : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border-white/10'}`}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border touch-manipulation ${selectedGenre === genre ? 'bg-primary text-background-dark border-primary' : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border-white/10'}`}
                 >
                   {genre}
                 </button>
@@ -172,6 +192,60 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+
+        {/* Browse / Search / Genre results - show prominently when filtering */}
+        {(searchQuery || selectedGenre) && (
+          <section ref={browseResultsRef} className="space-y-4" id="browse-results">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 border-l-2 border-primary pl-3">
+              {searchQuery ? `Search: "${searchQuery}"` : selectedGenre ? `Genre: ${selectedGenre}` : 'Browse catalog'}
+            </h2>
+            {browseLoading ? (
+              <div className="flex justify-center py-8">
+                <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+              </div>
+            ) : browse.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {browse.map((a, i) => (
+                    <div key={a.id || i} onClick={() => onNavigate('album-detail', a.id)} className="group cursor-pointer space-y-2">
+                      <div className="aspect-square rounded-xl bg-white/5 overflow-hidden shadow-xl transition-all group-hover:scale-[1.02] group-hover:ring-1 ring-primary relative">
+                        <img src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)} className="w-full h-full object-cover" alt={a.title || 'Album'} />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                          <p className="font-bold text-xs leading-tight text-white">{a.title || 'Album'}</p>
+                          <p className="text-primary text-[9px] font-bold uppercase mt-0.5">{a.artist || ''}</p>
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-xs font-bold truncate text-white">{a.title || 'Album'}</h3>
+                        <p className="text-[9px] text-slate-500 truncate">{a.artist || ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {browse.length < browseTotal && (
+                  <div className="flex justify-center pt-4">
+                    <button
+                      onClick={loadMoreBrowse}
+                      disabled={browseLoadingMore}
+                      className="px-5 py-2.5 rounded-lg border border-white/20 hover:bg-white/5 font-bold uppercase tracking-wider text-xs transition-all disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      {browseLoadingMore ? (
+                        <>
+                          <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                          Loading...
+                        </>
+                      ) : (
+                        'Load more'
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-slate-500 text-sm py-4">No albums found. Try a different search or genre.</p>
+            )}
+          </section>
+        )}
 
         {/* Social Activity */}
         <section className="space-y-4">
