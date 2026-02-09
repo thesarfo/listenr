@@ -13,4 +13,4 @@ React + Vite frontend for the Listenr music logging and discovery platform.
 
 The app runs at http://localhost:3000. API requests are proxied to the backend at http://127.0.0.1:8000.
 
-**Demo login:** demo@musicboxd.com / demo123 (after running `python scripts/seed.py` in the backend)
+**Demo login:** demo@listenr.com / demo123 (after running `python scripts/seed.py` in the backend)

@@ -110,7 +110,7 @@ const Login: React.FC<LoginProps> = ({ onNavigate }) => {
         </form>
 
         <p className="text-center text-slate-600 text-xs">
-          Demo: demo@musicboxd.com / demo123
+          Demo: demo@listenr.com / demo123
         </p>
       </div>
     </div>

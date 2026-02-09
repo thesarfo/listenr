@@ -61,7 +61,7 @@ const Diary: React.FC<DiaryProps> = ({ onNavigate }) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `musicboxd-diary-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `listenr-diary-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
