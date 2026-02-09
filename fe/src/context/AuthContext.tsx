@@ -7,6 +7,7 @@ interface User {
   email: string;
   avatar_url?: string;
   bio?: string;
+  is_admin?: boolean;
 }
 
 interface AuthContextValue {
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: me.email,
         avatar_url: me.avatar_url,
         bio: me.bio,
+        is_admin: me.is_admin ?? false,
       });
     } catch {
       localStorage.removeItem(TOKEN_KEY);

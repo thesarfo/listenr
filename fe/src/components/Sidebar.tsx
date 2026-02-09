@@ -7,6 +7,7 @@ interface SidebarProps {
   onLog: () => void;
   isOpen?: boolean;
   onClose?: () => void;
+  isAdmin?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onLog, isOpen = false, onClose }) => {
@@ -43,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onLog, isOpe
             key={item.id}
             onClick={() => onNavigate(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 md:py-2 rounded-xl md:rounded-lg text-base md:text-sm transition-all touch-manipulation ${
-              currentView === item.id || (item.id === 'lists' && currentView === 'list-detail')
+              currentView === item.id || (item.id === 'lists' && currentView === 'list-detail') || (item.id === 'admin' && currentView === 'admin')
                 ? 'bg-primary/10 text-primary font-bold' 
                 : 'text-slate-400 hover:bg-white/5 hover:text-white'
             }`}

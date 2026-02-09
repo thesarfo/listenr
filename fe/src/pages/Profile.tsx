@@ -29,6 +29,8 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
   const [selectedLogEntry, setSelectedLogEntry] = useState<typeof diaryEntries[0] | null>(null);
   const [copied, setCopied] = useState(false);
   const [profileNotFound, setProfileNotFound] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const isOwnProfile = !viewUsername || (user && viewUsername === user.username);
 
@@ -44,6 +46,10 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
           users.favorites(p.id).then((d) => setFavorites((d || []) as { id: string; title: string; artist: string; cover_url?: string }[]));
           users.reviews(p.id, 3).then((r) => setRecentReviews(r.data || []));
           users.diary(p.id, 10).then((r) => setDiaryEntries(r.data || []));
+          if (user) {
+            const following = await users.following();
+            setIsFollowing(following.some((u) => u.id === p.id));
+          }
         } catch {
           setProfile(null);
           setProfileNotFound(true);
@@ -59,6 +65,24 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
     };
     load();
   }, [user?.id, viewUsername]);
+
+  const handleFollowToggle = async () => {
+    if (!profile || isOwnProfile || followLoading) return;
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await users.unfollow(profile.id);
+        setIsFollowing(false);
+      } else {
+        await users.follow(profile.id);
+        setIsFollowing(true);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   const stats = profile || { albums_count: 0, reviews_count: 0, lists_count: 0 };
   const displayName = profile?.username || user?.username || 'Profile';
@@ -118,6 +142,19 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
               >
                 <span className="material-symbols-outlined text-base">share</span>
                 {copied ? 'Copied!' : 'Share profile'}
+              </button>
+            )}
+            {!isOwnProfile && profile && user && (
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all disabled:opacity-50 ${
+                  isFollowing
+                    ? 'bg-white/10 text-slate-400 border border-white/10'
+                    : 'bg-primary text-background-dark border border-primary hover:opacity-90'
+                }`}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
               </button>
             )}
           </div>

@@ -11,6 +11,7 @@ import Lists from './pages/Lists';
 import ListDetail from './pages/ListDetail';
 import LogAlbum from './pages/LogAlbum';
 import WriteReview from './pages/WriteReview';
+import Admin from './pages/Admin';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -28,6 +29,7 @@ function parsePath(): { view: View; albumId: string | null; username: string | n
   if (p === '/diary' || p === '/diary/') return { view: 'diary', albumId: null, username: null, listId: null };
   if (p === '/log' || p === '/log/') return { view: 'log-album', albumId: null, username: null, listId: null };
   if (p === '/login' || p === '/login/') return { view: 'login', albumId: null, username: null, listId: null };
+  if (p === '/admin' || p === '/admin/') return { view: 'admin', albumId: null, username: null, listId: null };
   return { view: 'home', albumId: null, username: null, listId: null };
 }
 
@@ -39,6 +41,7 @@ function pathFor(view: View, albumId?: string, username?: string, listId?: strin
   if (view === 'diary') return '/diary';
   if (view === 'log-album') return '/log';
   if (view === 'login') return '/login';
+  if (view === 'admin') return '/admin';
   if (view === 'landing') return '/';
   return '/';
 }
@@ -224,6 +227,7 @@ const App: React.FC = () => {
             currentView={currentView}
             onNavigate={handleNavigate}
             onLog={() => { setCurrentView('log-album'); setIsSidebarOpen(false); }}
+            isAdmin={user?.is_admin ?? false}
           />
         </>
       )}

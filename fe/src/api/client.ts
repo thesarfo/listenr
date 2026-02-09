@@ -128,6 +128,11 @@ export const explore = {
   genres: () => request<string[]>('/explore/genres'),
 };
 
+// Admin
+export const admin = {
+  analytics: () => request<AdminAnalytics>('/admin/analytics'),
+};
+
 // AI
 export const ai = {
   albumInsight: (albumId: string) =>
@@ -152,6 +157,9 @@ export const users = {
       body: JSON.stringify({ album_ids: albumIds }),
     }),
   recommended: () => request<{ id: string; username: string; avatar_url?: string }[]>('/users/recommended'),
+  follow: (userId: string) => request<{ message: string }>(`/users/${userId}/follow`, { method: 'POST' }),
+  unfollow: (userId: string) => request<{ message: string }>(`/users/${userId}/follow`, { method: 'DELETE' }),
+  following: () => request<{ id: string; username: string; avatar_url?: string }[]>('/users/me/following'),
 };
 
 // Types matching backend responses
@@ -226,6 +234,34 @@ export interface ApiListAlbum {
 export interface ApiListDetail extends ApiList {
   albums: ApiListAlbum[];
   collaborators?: ApiListCollaborator[];
+}
+
+export interface AdminAnalytics {
+  counts: {
+    users: number;
+    albums: number;
+    tracks: number;
+    reviews: number;
+    log_entries: number;
+    lists: number;
+    follows: number;
+  };
+  last_7_days: {
+    new_users: number;
+    reviews: number;
+    log_entries: number;
+  };
+  activity_by_day: { date: string; reviews: number; log_entries: number; total: number }[];
+  top_reviewers: { user_id: string; username: string; reviews_count: number }[];
+  top_genres: { genre: string; count: number }[];
+  recent_activity: {
+    id: string;
+    username: string;
+    album_title: string;
+    album_artist: string;
+    rating: number;
+    created_at: string | null;
+  }[];
 }
 
 export interface AlbumDetail {

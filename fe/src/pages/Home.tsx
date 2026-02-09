@@ -42,6 +42,8 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [genres, setGenres] = useState<string[]>([]);
   const [recommended, setRecommended] = useState<{ id: string; username: string; avatar_url?: string }[]>([]);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [followLoading, setFollowLoading] = useState<string | null>(null);
   const [feedLoading, setFeedLoading] = useState(true);
   const browseResultsRef = useRef<HTMLDivElement>(null);
   const BROWSE_PAGE_SIZE = 24;
@@ -51,7 +53,30 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     explore.popular(10).then((d) => setPopular((d as AlbumBrief[]) || []));
     explore.genres().then((g) => setGenres((g as string[]) || []));
     users.recommended().then(setRecommended);
+    users.following().then((list) => setFollowingIds(new Set(list.map((u) => u.id))));
   }, []);
+
+  const handleFollow = async (userId: string, isFollowing: boolean) => {
+    if (followLoading) return;
+    setFollowLoading(userId);
+    try {
+      if (isFollowing) {
+        await users.unfollow(userId);
+        setFollowingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+      } else {
+        await users.follow(userId);
+        setFollowingIds((prev) => new Set(prev).add(userId));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFollowLoading(null);
+    }
+  };
 
   useEffect(() => {
     let ok = true;
@@ -426,8 +451,17 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   </div>
                   <p className="text-xs font-bold truncate text-white group-hover/usr:text-primary transition-colors">{u.username}</p>
                 </button>
-                <button type="button" className="text-[9px] font-bold uppercase bg-primary/10 text-primary px-2.5 py-1 rounded hover:bg-primary hover:text-background-dark transition-colors shrink-0">
-                  Follow
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleFollow(u.id, followingIds.has(u.id)); }}
+                  disabled={!!followLoading}
+                  className={`text-[9px] font-bold uppercase px-2.5 py-1 rounded transition-colors shrink-0 disabled:opacity-50 ${
+                    followingIds.has(u.id)
+                      ? 'bg-white/10 text-slate-400'
+                      : 'bg-primary/10 text-primary hover:bg-primary hover:text-background-dark'
+                  }`}
+                >
+                  {followingIds.has(u.id) ? 'Following' : 'Follow'}
                 </button>
               </div>
             ))}
