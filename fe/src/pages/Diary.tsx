@@ -3,6 +3,7 @@ import { NavigateFn } from '../types';
 import { diary } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
 import LogEntryDetail from '../components/LogEntryDetail';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface DiaryProps {
   onNavigate: NavigateFn;
@@ -90,7 +91,7 @@ const Diary: React.FC<DiaryProps> = ({ onNavigate }) => {
 
       {loading ? (
         <div className="flex justify-center py-8">
-          <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+          <LoadingSpinner size="md" />
         </div>
       ) : entries.length === 0 ? (
         <p className="text-slate-500 py-8 text-sm">No diary entries yet. Log an album to get started.</p>

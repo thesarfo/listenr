@@ -17,10 +17,22 @@ body {
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
 }
 
 @media (min-width: 768px) {
   body { font-size: 15px; }
+}
+
+/* Prevent iOS zoom on input focus - 16px min on mobile */
+@media screen and (max-width: 767px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .album-scroll::-webkit-scrollbar {
@@ -31,14 +43,33 @@ body {
   scrollbar-width: none;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
 .glass-effect {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Icon alignment - perfectly centered */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+  width: 1em;
+  height: 1em;
   font-size: 1.25rem;
 }
 
@@ -50,4 +81,24 @@ body {
 }
 .fill-1 {
   font-variation-settings: 'FILL' 1;
+}
+
+/* High-fidelity spinner - actual rotating circle */
+.hi-fi-spinner {
+  animation: hifi-rotate 1.4s linear infinite;
+}
+.hi-fi-spinner circle {
+  stroke: currentColor;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 0;
+  transform-origin: center;
+  animation: hifi-dash 1.4s ease-in-out infinite;
+}
+@keyframes hifi-rotate {
+  100% { transform: rotate(360deg); }
+}
+@keyframes hifi-dash {
+  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
 }

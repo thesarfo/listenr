@@ -3,6 +3,7 @@ import { NavigateFn } from '../types';
 import { albums, users, lists } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { getAlbumCoverUrl } from '../utils/albumCover';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface AlbumDetailProps {
   albumId: string | null;
@@ -216,7 +217,7 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onReview, on
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-background-dark font-bold text-sm disabled:opacity-50"
                     >
                       {addingToListId === list.id ? (
-                        <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                        <LoadingSpinner size="sm" />
                       ) : (
                         <span className="material-symbols-outlined text-lg">add</span>
                       )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { albums, reviews } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface WriteReviewProps {
   albumId: string | null;
@@ -49,7 +50,7 @@ const WriteReview: React.FC<WriteReviewProps> = ({ albumId, onCancel, onPost }) 
   if (!album) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }

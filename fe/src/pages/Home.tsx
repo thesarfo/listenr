@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Review, NavigateFn } from '../types';
 import { reviews, albums, users, explore } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface AlbumBrief {
   id: string;
@@ -141,32 +142,24 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       <div className="flex-1 space-y-8 min-w-0">
         {/* Search + Genres */}
         <div className="space-y-4">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-base">search</span>
+          <div className="relative flex items-center">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center" style={{ fontSize: '1.25rem' }}>search</span>
             <input
               type="text"
               placeholder="Search albums by title or artist..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchBrowse(searchQuery, selectedGenre)}
-              className="w-full pl-9 pr-20 py-2 text-sm rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary"
+              className={`w-full py-2.5 md:py-2 text-base md:text-sm rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation ${searchQuery ? 'pl-10 pr-10' : 'pl-10 pr-4'}`}
             />
-            <button
-              type="button"
-              onClick={() => fetchBrowse(searchQuery, selectedGenre)}
-              className="absolute right-10 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 p-1 touch-manipulation"
-              aria-label="Search"
-            >
-              <span className="material-symbols-outlined text-lg">search</span>
-            </button>
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1 touch-manipulation"
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-slate-500 hover:text-white p-1.5 touch-manipulation"
                 aria-label="Clear search"
               >
-                <span className="material-symbols-outlined text-base">close</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
             )}
           </div>
@@ -201,7 +194,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             </h2>
             {browseLoading ? (
               <div className="flex justify-center py-8">
-                <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+                <LoadingSpinner size="md" />
               </div>
             ) : browse.length > 0 ? (
               <>
@@ -231,7 +224,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                     >
                       {browseLoadingMore ? (
                         <>
-                          <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                          <LoadingSpinner size="sm" className="shrink-0" />
                           Loading...
                         </>
                       ) : (
@@ -268,7 +261,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           </div>
           {feedLoading ? (
             <div className="flex justify-center py-6">
-              <span className="material-symbols-outlined animate-spin text-xl text-primary">progress_activity</span>
+              <LoadingSpinner size="md" />
             </div>
           ) : feedReviews.length > 0 ? (
             <div className="space-y-3">
@@ -363,7 +356,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           </div>
           {browseLoading ? (
             <div className="flex justify-center py-8">
-              <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+              <LoadingSpinner size="md" />
             </div>
           ) : (
             <>
@@ -389,7 +382,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   >
                     {browseLoadingMore ? (
                       <>
-                        <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                        <LoadingSpinner size="sm" className="shrink-0" />
                         Loading...
                       </>
                     ) : (

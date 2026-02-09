@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, NavigateFn } from '../types';
+import { NavigateFn } from '../types';
 import { lists } from '../api/client';
-import { ApiListDetail, ApiListAlbum } from '../api/client';
+import { ApiListDetail, ApiListAlbum, ApiListCollaborator } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
+import { getAvatarUrl } from '../utils/avatar';
+import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface ListDetailProps {
   listId: string | null;
@@ -11,6 +14,7 @@ interface ListDetailProps {
 }
 
 const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) => {
+  const { user } = useAuth();
   const [list, setList] = useState<ApiListDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -19,6 +23,11 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showAddCollaborator, setShowAddCollaborator] = useState(false);
+  const [collabUsername, setCollabUsername] = useState('');
+  const [collabError, setCollabError] = useState<string | null>(null);
+  const [addingCollab, setAddingCollab] = useState(false);
 
   useEffect(() => {
     if (!listId) return;
@@ -60,6 +69,56 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
     }
   };
 
+  const canEdit = user && list && (list.user_id === user.id || (list.collaborators || []).some((c: ApiListCollaborator) => c.id === user.id));
+  const isOwner = user && list && list.user_id === user.id;
+
+  const handleShare = async () => {
+    if (!listId) return;
+    const url = `${window.location.origin}/l/${listId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt('Copy this link:', url);
+    }
+  };
+
+  const handleAddCollaborator = async () => {
+    if (!listId || !collabUsername.trim() || addingCollab) return;
+    setAddingCollab(true);
+    setCollabError(null);
+    try {
+      const res = await lists.addCollaborator(listId, collabUsername.trim());
+      const added = res.user;
+      if (added && list) {
+        setList((prev) => prev ? {
+          ...prev,
+          collaborators: [...(prev.collaborators || []), added],
+        } : null);
+      }
+      setShowAddCollaborator(false);
+      setCollabUsername('');
+    } catch (e) {
+      setCollabError((e as Error).message || 'Failed to add collaborator');
+    } finally {
+      setAddingCollab(false);
+    }
+  };
+
+  const handleRemoveCollaborator = async (userId: string) => {
+    if (!listId) return;
+    try {
+      await lists.removeCollaborator(listId, userId);
+      setList((prev) => prev ? {
+        ...prev,
+        collaborators: (prev.collaborators || []).filter((c) => c.id !== userId),
+      } : null);
+    } catch (e) {
+      console.error('Remove collaborator failed:', e);
+    }
+  };
+
   const handleDelete = async () => {
     if (!listId || saving) return;
     setSaving(true);
@@ -78,7 +137,7 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
   if (!listId || loading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -107,7 +166,7 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
           />
         </div>
         <div className="flex-1 space-y-4 min-w-0">
-          {editMode ? (
+          {editMode && canEdit ? (
             <div className="space-y-4">
               <input
                 value={editTitle}
@@ -141,7 +200,7 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
             <>
               <h1 className="text-4xl md:text-6xl font-black tracking-tighter">{list.title}</h1>
               {list.description && <p className="text-slate-400">{list.description}</p>}
-              <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+              <div className="flex flex-wrap gap-4 text-sm text-slate-500 items-center">
                 <span className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-base">album</span>
                   {list.albums_count} albums
@@ -150,27 +209,111 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
                   <span className="material-symbols-outlined text-base text-rose-500 fill-1">favorite</span>
                   {list.likes} likes
                 </span>
+                {list.owner_username && (
+                  <span className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">person</span>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('profile', undefined, list.owner_username)}
+                      className="hover:text-primary hover:underline"
+                    >
+                      {list.owner_username}
+                    </button>
+                    {(list.collaborators?.length ?? 0) > 0 && (
+                      <>
+                        <span className="text-slate-600">+</span>
+                        {(list.collaborators || []).map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => onNavigate('profile', undefined, c.username)}
+                            className="hover:text-primary hover:underline"
+                          >
+                            {c.username}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </span>
+                )}
               </div>
-              <div className="flex gap-3 pt-2">
+              <p className="text-xs text-slate-500 pt-1">Share the link to let others view, or add collaborators to edit together.</p>
+              <div className="flex flex-wrap gap-3 pt-2">
                 <button
-                  onClick={() => setEditMode(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 hover:bg-white/5 font-bold text-sm"
+                  type="button"
+                  onClick={handleShare}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-background-dark font-bold text-sm transition-colors"
                 >
-                  <span className="material-symbols-outlined text-lg">edit</span>
-                  Edit
+                  <span className="material-symbols-outlined text-lg">share</span>
+                  {copied ? 'Copied!' : 'Share list'}
                 </button>
-                <button
-                  onClick={() => setDeleteConfirm(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 font-bold text-sm"
-                >
-                  <span className="material-symbols-outlined text-lg">delete</span>
-                  Delete list
-                </button>
+                {canEdit && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setEditMode(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/20 hover:bg-white/5 font-bold text-sm"
+                    >
+                      <span className="material-symbols-outlined text-lg">edit</span>
+                      Edit
+                    </button>
+                    {isOwner && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddCollaborator(true)}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/20 border border-primary/40 text-primary hover:bg-primary hover:text-background-dark font-bold text-sm transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-lg">group_add</span>
+                          Add collaborator
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirm(true)}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 font-bold text-sm"
+                        >
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                          Delete list
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             </>
           )}
         </div>
       </div>
+
+      {isOwner && (list.collaborators?.length ?? 0) > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">Collaborators</h2>
+          <div className="flex flex-wrap gap-4">
+            {(list.collaborators || []).map((c) => (
+              <div key={c.id} className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2 border border-white/5">
+                <div className="size-8 rounded-full overflow-hidden bg-white/10 shrink-0">
+                  <img src={getAvatarUrl(c.avatar_url, c.username)} alt="" className="w-full h-full object-cover" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('profile', undefined, c.username)}
+                  className="font-bold text-sm hover:text-primary truncate"
+                >
+                  {c.username}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveCollaborator(c.id)}
+                  className="text-slate-500 hover:text-rose-400 p-1"
+                  title="Remove collaborator"
+                >
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-6">
         <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">Albums</h2>
@@ -199,19 +342,57 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
                   </p>
                   <p className="text-slate-500 text-sm truncate">{a.artist}</p>
                 </div>
-                <button
-                  onClick={() => handleRemoveAlbum(a.id)}
-                  disabled={removing === a.id}
-                  className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-rose-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                  title="Remove from list"
-                >
-                  <span className="material-symbols-outlined text-lg">close</span>
-                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAlbum(a.id)}
+                    disabled={removing === a.id}
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-rose-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    title="Remove from list"
+                  >
+                    <span className="material-symbols-outlined text-lg">close</span>
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
       </section>
+
+      {showAddCollaborator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-background-dark border border-white/10 rounded-2xl p-8 max-w-md w-full space-y-6">
+            <h3 className="text-xl font-bold">Add collaborator</h3>
+            <p className="text-slate-400 text-sm">Enter a username to invite them to edit this list.</p>
+            <input
+              value={collabUsername}
+              onChange={(e) => { setCollabUsername(e.target.value); setCollabError(null); }}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary"
+              placeholder="Username"
+              autoFocus
+            />
+            {collabError && <p className="text-rose-400 text-sm">{collabError}</p>}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleAddCollaborator}
+                disabled={addingCollab || !collabUsername.trim()}
+                className="flex-1 bg-primary text-background-dark py-3 rounded-xl font-bold disabled:opacity-50"
+              >
+                {addingCollab ? 'Adding...' : 'Add'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowAddCollaborator(false); setCollabUsername(''); setCollabError(null); }}
+                disabled={addingCollab}
+                className="flex-1 border border-white/20 py-3 rounded-xl font-bold hover:bg-white/5 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">

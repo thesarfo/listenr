@@ -3,6 +3,7 @@ import { NavigateFn } from '../types';
 import { lists } from '../api/client';
 import { ApiList } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface ListsProps {
   onNavigate: NavigateFn;
@@ -16,6 +17,19 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
   const [createDesc, setCreateDesc] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleShare = async (e: React.MouseEvent, listId: string) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/l/${listId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(listId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      window.prompt('Copy this link:', url);
+    }
+  };
 
   useEffect(() => {
     lists.list().then((d) => {
@@ -56,7 +70,7 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
 
       {loading ? (
         <div className="flex justify-center py-8">
-          <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+          <LoadingSpinner size="md" />
         </div>
       ) : items.length === 0 ? (
         <p className="text-slate-500 py-8 text-sm">No lists yet. Create your first collection.</p>
@@ -76,6 +90,14 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
                     alt={list.title}
                   />
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => handleShare(e, list.id)}
+                  className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 hover:bg-primary text-white opacity-0 group-hover:opacity-100 transition-all"
+                  title="Share list"
+                >
+                  <span className="material-symbols-outlined text-lg">{copiedId === list.id ? 'check' : 'share'}</span>
+                </button>
               </div>
               <h3 className="text-2xl font-serif font-bold group-hover:text-primary transition-colors mb-2">{list.title}</h3>
               <div className="flex items-center gap-4 text-[10px] text-slate-500 font-black uppercase tracking-widest">
@@ -88,6 +110,9 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
                   {list.likes} likes
                 </span>
               </div>
+              <p className="text-[10px] text-slate-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to open · Share & add collaborators inside
+              </p>
             </div>
           ))}
         </div>

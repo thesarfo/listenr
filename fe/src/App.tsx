@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View } from './types';
 import { useAuth } from './context/AuthContext';
 import Onboarding from './pages/Onboarding';
 import Login from './pages/Login';
+import Landing from './pages/Landing';
 import Home from './pages/Home';
 import AlbumDetail from './pages/AlbumDetail';
 import Diary from './pages/Diary';
@@ -13,33 +13,67 @@ import LogAlbum from './pages/LogAlbum';
 import WriteReview from './pages/WriteReview';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import LoadingSpinner from './components/LoadingSpinner';
+import type { View } from './types';
+
+function parsePath(): { view: View; albumId: string | null; username: string | null; listId: string | null } {
+  const p = window.location.pathname;
+  const uMatch = p.match(/^\/u\/([^/]+)\/?$/);
+  const lMatch = p.match(/^\/l\/([^/]+)\/?$/);
+  const albumMatch = p.match(/^\/album\/([^/]+)\/?$/);
+  if (uMatch) return { view: 'profile', albumId: null, username: uMatch[1], listId: null };
+  if (lMatch) return { view: 'list-detail', albumId: null, username: null, listId: lMatch[1] };
+  if (albumMatch) return { view: 'album-detail', albumId: albumMatch[1], username: null, listId: null };
+  if (p === '/lists' || p === '/lists/') return { view: 'lists', albumId: null, username: null, listId: null };
+  if (p === '/diary' || p === '/diary/') return { view: 'diary', albumId: null, username: null, listId: null };
+  if (p === '/log' || p === '/log/') return { view: 'log-album', albumId: null, username: null, listId: null };
+  if (p === '/login' || p === '/login/') return { view: 'login', albumId: null, username: null, listId: null };
+  return { view: 'home', albumId: null, username: null, listId: null };
+}
+
+function pathFor(view: View, albumId?: string, username?: string, listId?: string): string {
+  if (view === 'profile' && username) return `/u/${username}`;
+  if (view === 'list-detail' && listId) return `/l/${listId}`;
+  if (view === 'album-detail' && albumId) return `/album/${albumId}`;
+  if (view === 'lists') return '/lists';
+  if (view === 'diary') return '/diary';
+  if (view === 'log-album') return '/log';
+  if (view === 'login') return '/login';
+  if (view === 'landing') return '/';
+  return '/';
+}
 
 const App: React.FC = () => {
   const { user, isLoading, logout } = useAuth();
-  const [currentView, setCurrentView] = useState<View>('home');
+  const initial = parsePath();
+  const [currentView, setCurrentView] = useState<View>(initial.view === 'home' && !initial.albumId && !initial.username && !initial.listId ? 'landing' : initial.view);
   const [previousView, setPreviousView] = useState<View>('home');
-  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
-  const [selectedProfileUsername, setSelectedProfileUsername] = useState<string | null>(null);
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(initial.albumId);
+  const [selectedProfileUsername, setSelectedProfileUsername] = useState<string | null>(initial.username);
+  const [selectedListId, setSelectedListId] = useState<string | null>(initial.listId);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Handle shareable profile URLs on load (e.g. /u/username)
   useEffect(() => {
-    const m = window.location.pathname.match(/^\/u\/([^/]+)\/?$/);
-    if (m) {
-      setCurrentView('profile');
-      setSelectedProfileUsername(m[1]);
-    }
+    const onPopState = () => {
+      const { view, albumId, username, listId } = parsePath();
+      setCurrentView(view);
+      setSelectedAlbumId(albumId);
+      setSelectedProfileUsername(username);
+      setSelectedListId(listId);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   const navigate = (view: View, albumId?: string, username?: string, listId?: string) => {
     setPreviousView(currentView);
-    if (albumId) setSelectedAlbumId(albumId);
-    if (username !== undefined) setSelectedProfileUsername(username);
-    if (listId !== undefined) setSelectedListId(listId);
+    if (albumId !== undefined) setSelectedAlbumId(albumId || null);
+    if (username !== undefined) setSelectedProfileUsername(username || null);
+    if (listId !== undefined) setSelectedListId(listId || null);
     setCurrentView(view);
-    if (view === 'profile' && username) {
-      window.history.pushState({}, '', `/u/${username}`);
+    const path = pathFor(view, albumId, username, listId);
+    if (path !== window.location.pathname) {
+      window.history.pushState({}, '', path);
     }
   };
 
@@ -79,7 +113,7 @@ const App: React.FC = () => {
         return (
           <AlbumDetail
             albumId={selectedAlbumId}
-            onBack={() => setCurrentView('home')}
+            onBack={() => navigate('home')}
             onReview={() => navigate('write-review')}
             onNavigate={navigate}
           />
@@ -92,18 +126,22 @@ const App: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background-dark">
-        <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
-  if (!user) {
-    // Allow viewing shared profiles without login
+    if (!user) {
+    // Allow viewing shared profiles or lists without login
     if (currentView === 'profile' && selectedProfileUsername) {
-      const guestNavigate = (view: View, albumId?: string) => {
+      const guestNavigate = (view: View, albumId?: string, username?: string, listId?: string) => {
         setCurrentView(view);
         if (albumId) setSelectedAlbumId(albumId);
-        setSelectedProfileUsername(null);
+        if (username !== undefined) setSelectedProfileUsername(username);
+        else if (view !== 'profile') setSelectedProfileUsername(null);
+        if (listId !== undefined) setSelectedListId(listId);
+        const path = pathFor(view, albumId, username, listId);
+        if (path !== window.location.pathname) window.history.pushState({}, '', path);
       };
       return (
         <div className="flex h-screen flex-col overflow-hidden bg-background-dark text-white font-display">
@@ -118,16 +156,50 @@ const App: React.FC = () => {
         </div>
       );
     }
+    const path = window.location.pathname;
+    if (path === '/' || path === '' || path === '/landing') {
+      return <Landing onSignIn={() => { setCurrentView('login'); window.history.pushState({}, '', '/login'); }} />;
+    }
+    if (path === '/login' || path === '/login/' || currentView === 'login') {
+      return <Login onNavigate={setCurrentView} />;
+    }
+    if (currentView === 'list-detail' && selectedListId) {
+      const guestNavigate = (view: View, albumId?: string, _username?: string, listId?: string) => {
+        setCurrentView(view);
+        if (albumId) setSelectedAlbumId(albumId);
+        if (listId !== undefined) setSelectedListId(listId);
+        const path = pathFor(view, albumId, undefined, listId);
+        if (path !== window.location.pathname) window.history.pushState({}, '', path);
+      };
+      return (
+        <div className="flex h-screen flex-col overflow-hidden bg-background-dark text-white font-display">
+          <main className="flex-1 overflow-y-auto custom-scrollbar bg-charcoal/50">
+            <ListDetail
+              listId={selectedListId}
+              onBack={() => guestNavigate('home', undefined, undefined, undefined)}
+              onNavigate={guestNavigate}
+            />
+          </main>
+          <div className="border-t border-white/10 p-4 flex justify-center">
+            <button onClick={() => setCurrentView('login')} className="text-primary hover:underline text-sm font-bold">
+              Sign in to edit lists and collaborate
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <Login onNavigate={setCurrentView} />;
   }
 
   const showNavigation = currentView !== 'onboarding' && currentView !== 'write-review' && currentView !== 'log-album' && currentView !== 'login';
 
   const handleNavigate = (view: View) => {
+    const username = view === 'profile' && user ? user.username : undefined;
+    if (view === 'profile') setSelectedProfileUsername(username ?? null);
     setCurrentView(view);
-    if (view === 'profile' && user) {
-      setSelectedProfileUsername(user.username);
-      window.history.pushState({}, '', `/u/${user.username}`);
+    const path = pathFor(view, undefined, username, undefined);
+    if (path !== window.location.pathname) {
+      window.history.pushState({}, '', path);
     }
     setIsSidebarOpen(false);
   };

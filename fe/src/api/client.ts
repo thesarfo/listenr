@@ -111,6 +111,13 @@ export const lists = {
     request<{ message: string }>(`/lists/${listId}/albums/${albumId}`, { method: 'DELETE' }),
   like: (listId: string) => request<{ message: string }>(`/lists/${listId}/like`, { method: 'POST' }),
   unlike: (listId: string) => request<{ message: string }>(`/lists/${listId}/like`, { method: 'DELETE' }),
+  addCollaborator: (listId: string, username: string) =>
+    request<{ message: string; user?: { id: string; username: string; avatar_url?: string } }>(
+      `/lists/${listId}/collaborators`,
+      { method: 'POST', body: JSON.stringify({ username }) }
+    ),
+  removeCollaborator: (listId: string, userId: string) =>
+    request<{ message: string }>(`/lists/${listId}/collaborators/${userId}`, { method: 'DELETE' }),
 };
 
 // Explore
@@ -193,12 +200,19 @@ export interface ApiLogEntry {
 export interface ApiList {
   id: string;
   user_id: string;
+  owner_username?: string;
   title: string;
   description?: string;
   cover_url?: string;
   albums_count: number;
   likes: number;
   created_at?: string;
+}
+
+export interface ApiListCollaborator {
+  id: string;
+  username: string;
+  avatar_url?: string;
 }
 
 export interface ApiListAlbum {
@@ -210,6 +224,7 @@ export interface ApiListAlbum {
 
 export interface ApiListDetail extends ApiList {
   albums: ApiListAlbum[];
+  collaborators?: ApiListCollaborator[];
 }
 
 export interface AlbumDetail {

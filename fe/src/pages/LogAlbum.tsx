@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, NavigateFn } from '../types';
 import { albums } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 interface AlbumBrief {
   id: string;
@@ -95,7 +96,7 @@ const LogAlbum: React.FC<LogAlbumProps> = ({ onNavigate }) => {
 
         {loading || searching ? (
           <div className="flex justify-center py-20">
-            <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+            <LoadingSpinner size="lg" />
           </div>
         ) : displayList.length === 0 ? (
           <div className="text-center py-20">

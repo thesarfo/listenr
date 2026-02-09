@@ -21,18 +21,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onMenuClick }) =>
         >
           <span className="material-symbols-outlined text-2xl md:text-lg">menu</span>
         </button>
-        <div className="relative w-full max-w-xl hidden md:block">
-          <div className="relative w-full group">
-            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-base group-focus-within:text-primary transition-colors">
-              search
-            </span>
-            <input 
-              className="w-full bg-white/5 border-none rounded-full pl-8 pr-3 py-1.5 focus:ring-1 focus:ring-primary text-sm placeholder:text-slate-600" 
-              placeholder="Search albums, artists, or friends..." 
-              type="text"
-            />
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center gap-2">
