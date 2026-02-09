@@ -96,7 +96,7 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-primary text-background-dark px-5 py-3 rounded-full font-bold uppercase tracking-wider text-sm shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all group"
+          className="flex items-center gap-2 bg-primary text-background-dark px-6 py-4 md:py-3 rounded-full font-bold uppercase tracking-wider text-base md:text-sm shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all group touch-manipulation"
         >
           <span className="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform">add</span>
           <span>Create New List</span>
