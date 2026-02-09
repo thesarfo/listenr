@@ -23,9 +23,55 @@ interface ListsProps {
   onNavigate: NavigateFn;
 }
 
+interface ListCardProps {
+  list: ApiList;
+  onNavigate: NavigateFn;
+  onShare: (e: React.MouseEvent, listId: string) => void | Promise<void>;
+  copiedId: string | null;
+}
+
+function ListCard({ list, onNavigate, onShare, copiedId }: ListCardProps) {
+  return (
+    <div
+      onClick={() => onNavigate('list-detail', undefined, undefined, list.id)}
+      className="group cursor-pointer"
+    >
+      <div className="relative h-44 md:h-48 mb-4">
+        <div className="absolute inset-0 bg-slate-900 rounded-xl shadow-xl overflow-hidden border border-white/10">
+          <ListCover list={list} />
+        </div>
+        <button
+          type="button"
+          onClick={(e) => onShare(e, list.id)}
+          className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 hover:bg-primary text-white opacity-0 group-hover:opacity-100 transition-all"
+          title="Share list"
+        >
+          <span className="material-symbols-outlined text-lg">{copiedId === list.id ? 'check' : 'share'}</span>
+        </button>
+      </div>
+      <h3 className="text-2xl font-serif font-bold group-hover:text-primary transition-colors mb-2">{list.title}</h3>
+      <div className="flex items-center gap-4 text-[10px] text-slate-500 font-black uppercase tracking-widest">
+        <span className="flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-base">album</span>
+          {list.albums_count} albums
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="material-symbols-outlined text-sm text-rose-500 fill-1">favorite</span>
+          {list.likes} likes
+        </span>
+      </div>
+      <p className="text-[10px] text-slate-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        Click to open · Share & add collaborators inside
+      </p>
+    </div>
+  );
+}
+
 const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
-  const [items, setItems] = useState<ApiList[]>([]);
+  const [myLists, setMyLists] = useState<ApiList[]>([]);
+  const [likedLists, setLikedLists] = useState<ApiList[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'mine' | 'liked'>('mine');
   const [showCreate, setShowCreate] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
   const [createDesc, setCreateDesc] = useState('');
@@ -45,10 +91,16 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
     }
   };
 
+  const loadLists = () => {
+    setLoading(true);
+    Promise.all([
+      lists.list().then((d) => setMyLists((d || []) as ApiList[])).catch(() => setMyLists([])),
+      lists.liked().then((d) => setLikedLists((d || []) as ApiList[])).catch(() => setLikedLists([])),
+    ]).finally(() => setLoading(false));
+  };
+
   useEffect(() => {
-    lists.list().then((d) => {
-      setItems((d || []) as ApiList[]);
-    }).catch(() => {}).finally(() => setLoading(false));
+    loadLists();
   }, []);
 
   const handleCreate = async () => {
@@ -57,7 +109,7 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
     setError(null);
     try {
       const list = await lists.create({ title: createTitle.trim(), description: createDesc.trim() || undefined });
-      setItems((prev) => [list, ...prev]);
+      setMyLists((prev) => [list, ...prev]);
       setShowCreate(false);
       setCreateTitle('');
       setCreateDesc('');
@@ -69,6 +121,10 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
     }
   };
 
+  const myListIds = new Set(myLists.map((l) => l.id));
+  const likedOnly = likedLists.filter((l) => !myListIds.has(l.id));
+  const displayLists = activeTab === 'mine' ? myLists : likedOnly;
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-10 relative">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -78,7 +134,24 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
             <span className="text-slate-700">/</span>
             <span className="text-slate-500">Collections</span>
           </nav>
-          <h2 className="text-2xl md:text-4xl font-serif font-bold tracking-tight">My Lists</h2>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('mine')}
+              className={`text-2xl md:text-4xl font-serif font-bold tracking-tight transition-colors ${
+                activeTab === 'mine' ? 'text-white' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              My Lists
+            </button>
+            <button
+              onClick={() => setActiveTab('liked')}
+              className={`text-2xl md:text-4xl font-serif font-bold tracking-tight transition-colors ${
+                activeTab === 'liked' ? 'text-white' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Liked Lists
+            </button>
+          </div>
         </div>
       </div>
 
@@ -86,44 +159,21 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
         <div className="flex justify-center py-8">
           <LoadingSpinner size="md" />
         </div>
-      ) : items.length === 0 ? (
+      ) : activeTab === 'mine' && myLists.length === 0 ? (
         <p className="text-slate-500 py-8 text-sm">No lists yet. Create your first collection.</p>
+      ) : activeTab === 'liked' && likedOnly.length === 0 ? (
+        <p className="text-slate-500 py-8 text-sm">No liked lists yet. Open a list and tap Like to save it here.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {items.map((list) => (
-            <div
-              key={list.id}
-              onClick={() => onNavigate('list-detail', undefined, undefined, list.id)}
-              className="group cursor-pointer"
-            >
-              <div className="relative h-44 md:h-48 mb-4">
-                <div className="absolute inset-0 bg-slate-900 rounded-xl shadow-xl overflow-hidden border border-white/10">
-                  <ListCover list={list} />
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => handleShare(e, list.id)}
-                  className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 hover:bg-primary text-white opacity-0 group-hover:opacity-100 transition-all"
-                  title="Share list"
-                >
-                  <span className="material-symbols-outlined text-lg">{copiedId === list.id ? 'check' : 'share'}</span>
-                </button>
-              </div>
-              <h3 className="text-2xl font-serif font-bold group-hover:text-primary transition-colors mb-2">{list.title}</h3>
-              <div className="flex items-center gap-4 text-[10px] text-slate-500 font-black uppercase tracking-widest">
-                <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-base">album</span>
-                  {list.albums_count} albums
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm text-rose-500 fill-1">favorite</span>
-                  {list.likes} likes
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Click to open · Share & add collaborators inside
-              </p>
-            </div>
+          {displayLists.map((list) => (
+            <React.Fragment key={list.id}>
+              <ListCard
+                list={list}
+                onNavigate={onNavigate}
+                onShare={handleShare}
+                copiedId={copiedId}
+              />
+            </React.Fragment>
           ))}
         </div>
       )}

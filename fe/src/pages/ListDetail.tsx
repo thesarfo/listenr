@@ -28,6 +28,7 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
   const [collabUsername, setCollabUsername] = useState('');
   const [collabError, setCollabError] = useState<string | null>(null);
   const [addingCollab, setAddingCollab] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   useEffect(() => {
     if (list?.title) {
@@ -124,6 +125,26 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
       } : null);
     } catch (e) {
       console.error('Remove collaborator failed:', e);
+    }
+  };
+
+  const handleLikeToggle = async () => {
+    if (!listId || !user || likeLoading) return;
+    if (isOwner) return;  // Don't show like for own lists
+    setLikeLoading(true);
+    try {
+      const wasLiked = list?.user_liked ?? false;
+      if (wasLiked) {
+        await lists.unlike(listId);
+        setList((prev) => prev ? { ...prev, likes: prev.likes - 1, user_liked: false } : null);
+      } else {
+        await lists.like(listId);
+        setList((prev) => prev ? { ...prev, likes: prev.likes + 1, user_liked: true } : null);
+      }
+    } catch (e) {
+      console.error('Like toggle failed:', e);
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -255,6 +276,21 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
                   <span className="material-symbols-outlined text-lg">share</span>
                   {copied ? 'Copied!' : 'Share list'}
                 </button>
+                {user && !isOwner && (
+                  <button
+                    type="button"
+                    onClick={handleLikeToggle}
+                    disabled={likeLoading}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded font-bold text-xs transition-colors disabled:opacity-50 ${
+                      list.user_liked
+                        ? 'bg-rose-500/20 border border-rose-500/40 text-rose-400'
+                        : 'border border-white/20 hover:bg-white/5'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-lg ${list.user_liked ? 'fill-1' : ''}`}>favorite</span>
+                    {list.user_liked ? 'Liked' : 'Like'}
+                  </button>
+                )}
                 {canEdit && (
                   <>
                     <button

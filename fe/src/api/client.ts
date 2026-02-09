@@ -118,6 +118,7 @@ export const diary = {
 // Lists
 export const lists = {
   list: () => request<ApiList[]>('/lists'),
+  liked: () => request<ApiList[]>('/lists/liked'),
   get: (id: string) => request<ApiListDetail>(`/lists/${id}`),
   create: (data: { title: string; description?: string }) =>
     request<ApiList>('/lists', { method: 'POST', body: JSON.stringify(data) }),
@@ -253,6 +254,7 @@ export interface ApiList {
   preview_albums?: ApiListPreviewAlbum[];
   albums_count: number;
   likes: number;
+  user_liked?: boolean;
   created_at?: string;
 }
 
