@@ -172,6 +172,8 @@ export interface ApiUserProfile {
   albums_count: number;
   reviews_count: number;
   lists_count: number;
+  following_count?: number;
+  followers_count?: number;
 }
 
 export interface ApiReview {

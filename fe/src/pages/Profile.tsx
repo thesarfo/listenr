@@ -22,6 +22,8 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
     albums_count: number;
     reviews_count: number;
     lists_count: number;
+    following_count?: number;
+    followers_count?: number;
   } | null>(null);
   const [favorites, setFavorites] = useState<{ id: string; title: string; artist: string; cover_url?: string }[]>([]);
   const [recentReviews, setRecentReviews] = useState<{ album_title?: string; rating: number; content?: string }[]>([]);
@@ -31,6 +33,7 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
   const [profileNotFound, setProfileNotFound] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'log' | 'favorites'>('log');
 
   const isOwnProfile = !viewUsername || (user && viewUsername === user.username);
 
@@ -123,140 +126,131 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
   };
 
   return (
-    <div className="max-w-[1000px] mx-auto py-6 px-4">
-      <div className="flex flex-col md:flex-row gap-6 items-center md:items-end">
-        <div
-          className="size-24 md:size-32 bg-center bg-cover rounded-2xl shadow-xl ring-2 ring-primary/10"
-          style={{
-            backgroundImage: `url(${avatarUrl})`,
-            backgroundColor: 'rgba(255,255,255,0.05)',
-          }}
-        />
-        <div className="flex-1 text-center md:text-left space-y-4">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{displayName}</h1>
-            {isOwnProfile && (
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/5 transition-all text-xs font-bold"
-              >
-                <span className="material-symbols-outlined text-base">share</span>
-                {copied ? 'Copied!' : 'Share profile'}
-              </button>
-            )}
-            {!isOwnProfile && profile && user && (
-              <button
-                onClick={handleFollowToggle}
-                disabled={followLoading}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs transition-all disabled:opacity-50 ${
-                  isFollowing
-                    ? 'bg-white/10 text-slate-400 border border-white/10'
-                    : 'bg-primary text-background-dark border border-primary hover:opacity-90'
-                }`}
-              >
-                {isFollowing ? 'Following' : 'Follow'}
-              </button>
-            )}
-          </div>
-          <p className="text-slate-400 text-lg font-medium max-w-xl">{profile?.bio || user?.bio || 'No bio yet.'}</p>
+    <div className="max-w-[935px] mx-auto py-4 px-4 md:py-8">
+      {/* Header - Instagram style */}
+      <header className="flex flex-col sm:flex-row gap-6 sm:gap-12 pb-6 border-b border-white/10">
+        <div className="flex justify-center sm:justify-start shrink-0">
+          <div
+            className="size-20 sm:size-[150px] rounded-full bg-center bg-cover ring-2 ring-white/10"
+            style={{
+              backgroundImage: `url(${avatarUrl})`,
+              backgroundColor: 'rgba(255,255,255,0.05)',
+            }}
+          />
         </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 md:gap-6 mt-8">
-        {[
-          { label: 'Albums', value: stats.albums_count.toLocaleString() },
-          { label: 'Reviews', value: stats.reviews_count.toLocaleString() },
-          { label: 'Lists', value: stats.lists_count.toLocaleString() },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white/5 border border-white/5 rounded-xl p-4">
-            <p className="text-slate-500 text-[9px] font-bold uppercase tracking-wider">{stat.label}</p>
-            <p className="text-xl md:text-2xl font-bold tabular-nums">{stat.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-12 space-y-4">
-        <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">Favorites</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {favorites.map((album) => (
-            <div key={album.id} onClick={() => onNavigate('album-detail', album.id)} className="group cursor-pointer space-y-4">
-              <div className="aspect-square bg-white/5 rounded-2xl overflow-hidden shadow-2xl transition-all group-hover:-translate-y-2 group-hover:ring-4 ring-primary/50 relative">
-                <img src={getAlbumCoverUrl(album.cover_url, album.title, album.artist)} className="w-full h-full object-cover" alt={album.title} />
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-bold truncate">{album.title}</p>
-                <p className="text-[9px] text-slate-500 uppercase font-medium">{album.artist}</p>
-              </div>
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 mb-4">
+            <h1 className="text-xl font-semibold">{displayName}</h1>
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              {isOwnProfile ? (
+                <button
+                  onClick={handleShare}
+                  className="px-4 py-1.5 rounded text-sm font-semibold bg-white/10 hover:bg-white/15 transition-colors"
+                >
+                  {copied ? 'Copied!' : 'Share profile'}
+                </button>
+              ) : profile && user && (
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`px-4 py-1.5 rounded text-sm font-semibold transition-colors disabled:opacity-50 ${
+                    isFollowing ? 'bg-white/10 text-slate-300' : 'bg-primary text-background-dark hover:opacity-90'
+                  }`}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </button>
+              )}
+              {isOwnProfile && (
+                <button
+                  onClick={() => onNavigate('diary')}
+                  className="px-4 py-1.5 rounded text-sm font-semibold border border-white/20 hover:bg-white/5 transition-colors"
+                >
+                  Log album
+                </button>
+              )}
             </div>
-          ))}
+          </div>
+          {/* Stats row */}
+          <div className="flex justify-center sm:justify-start gap-6 mb-4">
+            <span><span className="font-semibold">{stats.albums_count.toLocaleString()}</span> albums</span>
+            <span><span className="font-semibold">{(stats.followers_count ?? 0).toLocaleString()}</span> followers</span>
+            <span><span className="font-semibold">{(stats.following_count ?? 0).toLocaleString()}</span> following</span>
+          </div>
+          <p className="text-sm text-slate-300 max-w-md">{profile?.bio || user?.bio || 'No bio yet.'}</p>
         </div>
+      </header>
+
+      {/* Tabs */}
+      <div className="flex justify-center border-b border-white/10 mt-6">
+        <button
+          onClick={() => setActiveTab('log')}
+          className={`flex-1 max-w-[200px] py-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'log' ? 'border-white text-white' : 'border-transparent text-slate-500'
+          }`}
+        >
+          Log
+        </button>
+        <button
+          onClick={() => setActiveTab('favorites')}
+          className={`flex-1 max-w-[200px] py-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'favorites' ? 'border-white text-white' : 'border-transparent text-slate-500'
+          }`}
+        >
+          Favorites
+        </button>
       </div>
 
-      <div className="mt-20 border-b border-white/10" />
-
-      <div className="mt-12 space-y-6">
-        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Album Log</h3>
-        {diaryEntries.length === 0 ? (
-          <p className="text-slate-500 py-4">No albums logged yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {diaryEntries.map((e) => (
+      {/* Grid - Instagram-style 3 columns */}
+      <div className="grid grid-cols-3 gap-0.5 sm:gap-1 mt-1">
+        {activeTab === 'log' &&
+          (diaryEntries.length === 0 ? (
+            <div className="col-span-3 py-16 text-center text-slate-500 text-sm">
+              No albums logged yet.{' '}
+              {isOwnProfile && (
+                <button onClick={() => onNavigate('diary')} className="text-primary hover:underline">
+                  Log your first album
+                </button>
+              )}
+            </div>
+          ) : (
+            diaryEntries.map((e) => (
               <div
                 key={e.id}
                 onClick={() => setSelectedLogEntry(e)}
-                className="flex gap-4 items-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 cursor-pointer transition-all group"
+                className="aspect-square relative bg-white/5 cursor-pointer group overflow-hidden"
               >
                 <img
                   src={getAlbumCoverUrl(e.album_cover, e.album_title, e.album_artist)}
                   alt={e.album_title || 'Album'}
-                  className="w-14 h-14 rounded-lg object-cover shrink-0"
+                  className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
                 />
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold truncate group-hover:text-primary transition-colors">{e.album_title || 'Album'}</h4>
-                  <p className="text-slate-500 text-sm truncate">{e.album_artist || ''}</p>
-                </div>
-                <div className="flex items-center gap-1 text-primary shrink-0">
-                  {[...Array(5)].map((_, j) => (
-                    <span key={j} className={`material-symbols-outlined text-lg ${j < Math.floor(e.rating) ? 'fill-1' : ''}`}>star</span>
-                  ))}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 transition-opacity">
+                  <span className="flex items-center gap-0.5 text-primary">
+                    <span className="material-symbols-outlined text-lg fill-1">star</span>
+                    <span className="font-bold text-sm">{e.rating}</span>
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-        {isOwnProfile && diaryEntries.length > 0 && (
-          <button
-            onClick={() => onNavigate('diary')}
-            className="text-primary hover:underline text-sm font-bold"
-          >
-            View full diary →
-          </button>
-        )}
-      </div>
-
-      <div className="mt-12 space-y-6">
-        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Recent Reviews</h3>
-        {recentReviews.map((r, i) => (
-          <div key={i} className="flex gap-6 items-start p-6 rounded-2xl hover:bg-white/5 transition-all">
-            <div className="flex-1 space-y-2">
-              <h4 className="text-lg font-black">{r.album_title || 'Album'}</h4>
-              <div className="flex text-primary">
-                {[...Array(5)].map((_, j) => (
-                  <span key={j} className={`material-symbols-outlined text-sm ${j < Math.floor(r.rating) ? 'fill-1' : ''}`}>star</span>
-                ))}
+            ))
+          ))}
+        {activeTab === 'favorites' &&
+          (favorites.length === 0 ? (
+            <div className="col-span-3 py-16 text-center text-slate-500 text-sm">No favorites yet.</div>
+          ) : (
+            favorites.map((album) => (
+              <div
+                key={album.id}
+                onClick={() => onNavigate('album-detail', album.id)}
+                className="aspect-square bg-white/5 cursor-pointer overflow-hidden group"
+              >
+                <img
+                  src={getAlbumCoverUrl(album.cover_url, album.title, album.artist)}
+                  alt={album.title}
+                  className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                />
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed line-clamp-2">{r.content || ''}</p>
-            </div>
-          </div>
-        ))}
-        {isOwnProfile && recentReviews.length > 0 && (
-          <button
-            onClick={() => onNavigate('diary')}
-            className="text-primary hover:underline text-sm font-bold"
-          >
-            View full diary →
-          </button>
-        )}
+            ))
+          ))}
       </div>
 
       {selectedLogEntry && (
