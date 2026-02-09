@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    window.history.replaceState({}, '', '/');
   }, []);
 
   return (
