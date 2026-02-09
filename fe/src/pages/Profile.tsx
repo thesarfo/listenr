@@ -41,6 +41,13 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
   const isOwnProfile = !viewUsername || (user && viewUsername === user.username);
 
   useEffect(() => {
+    if (profile?.username) {
+      document.title = `${profile.username}'s Profile on Listenr`;
+      return () => { document.title = 'Listenr – Your Personal Music Diary'; };
+    }
+  }, [profile?.username]);
+
+  useEffect(() => {
     const load = async () => {
       setDiaryEntries([]);
       setSelectedLogEntry(null);

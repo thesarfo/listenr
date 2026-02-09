@@ -30,6 +30,14 @@ const ListDetail: React.FC<ListDetailProps> = ({ listId, onBack, onNavigate }) =
   const [addingCollab, setAddingCollab] = useState(false);
 
   useEffect(() => {
+    if (list?.title) {
+      const owner = list.owner_username || 'Someone';
+      document.title = `${list.title} by ${owner} on Listenr`;
+      return () => { document.title = 'Listenr – Your Personal Music Diary'; };
+    }
+  }, [list?.title, list?.owner_username]);
+
+  useEffect(() => {
     if (!listId) return;
     let ok = true;
     lists.get(listId).then((d) => {
