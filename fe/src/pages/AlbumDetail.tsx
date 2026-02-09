@@ -290,7 +290,17 @@ const AlbumDetail: React.FC<AlbumDetailProps> = ({ albumId, onBack, onReview, on
                 <div key={i} className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-primary/20 transition-all">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <p className="text-sm font-bold">{r.user_name || 'User'}</p>
+                      {r.user_name && onNavigate ? (
+                        <button
+                          type="button"
+                          onClick={() => onNavigate('profile', undefined, r.user_name)}
+                          className="text-sm font-bold hover:text-primary hover:underline focus:outline-none focus:underline text-left"
+                        >
+                          {r.user_name}
+                        </button>
+                      ) : (
+                        <p className="text-sm font-bold">{r.user_name || 'User'}</p>
+                      )}
                       <div className="flex text-primary text-xs">
                         {[...Array(5)].map((_, j) => (
                           <span key={j} className={`material-symbols-outlined text-[14px] ${j < Math.floor(r.rating) ? 'fill-1' : ''}`}>star</span>

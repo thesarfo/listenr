@@ -284,7 +284,13 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-xs">
-                        <span className="font-bold text-white">{review.userName}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); review.userName && onNavigate('profile', undefined, review.userName); }}
+                          className="font-bold text-white hover:text-primary hover:underline focus:outline-none focus:underline"
+                        >
+                          {review.userName}
+                        </button>
                         <span className="text-slate-500 ml-0.5">reviewed</span>
                         <span className="text-white font-bold ml-0.5">{review.albumTitle}</span>
                       </p>
@@ -417,13 +423,17 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           <div className="space-y-3">
             {recommended.slice(0, 5).map((u) => (
               <div key={u.id} className="flex items-center gap-3">
-                <div className="size-8 rounded-full bg-white/5 overflow-hidden border border-white/10">
-                  {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : null}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold truncate text-white">{u.username}</p>
-                </div>
-                <button className="text-[9px] font-bold uppercase bg-primary/10 text-primary px-3 py-1.5 rounded-full hover:bg-primary hover:text-background-dark transition-all">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('profile', undefined, u.username)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left group/usr"
+                >
+                  <div className="size-8 rounded-full bg-white/5 overflow-hidden border border-white/10 shrink-0 ring-0 group-hover/usr:ring-1 group-hover/usr:ring-primary transition-all">
+                    {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : null}
+                  </div>
+                  <p className="text-xs font-bold truncate text-white group-hover/usr:text-primary transition-colors">{u.username}</p>
+                </button>
+                <button type="button" className="text-[9px] font-bold uppercase bg-primary/10 text-primary px-3 py-1.5 rounded-full hover:bg-primary hover:text-background-dark transition-all shrink-0">
                   Follow
                 </button>
               </div>
