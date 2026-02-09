@@ -6,38 +6,13 @@ import { getAlbumCoverUrl } from '../utils/albumCover';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 function ListCover({ list }: { list: ApiList }) {
-  const preview = list.preview_albums ?? [];
-  if (preview.length === 1) {
-    const a = preview[0];
-    return (
-      <img
-        src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)}
-        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-        alt={list.title}
-      />
-    );
-  }
-  if (preview.length >= 2) {
-    return (
-      <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-0.5 md:gap-1">
-        {[0, 1, 2, 3].map((i) => {
-          const a = preview[i];
-          if (!a) return <div key={i} className="bg-slate-800" aria-hidden />;
-          return (
-            <img
-              key={a.id}
-              src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)}
-              alt=""
-              className="w-full h-full object-cover transition-transform group-hover:scale-105"
-            />
-          );
-        })}
-      </div>
-    );
-  }
+  const firstAlbum = (list.preview_albums ?? [])[0];
+  const coverUrl = firstAlbum
+    ? getAlbumCoverUrl(firstAlbum.cover_url, firstAlbum.title, firstAlbum.artist)
+    : getAlbumCoverUrl(list.cover_url, list.title, undefined);
   return (
     <img
-      src={getAlbumCoverUrl(list.cover_url, list.title, undefined)}
+      src={coverUrl}
       className="w-full h-full object-cover transition-transform group-hover:scale-110"
       alt={list.title}
     />

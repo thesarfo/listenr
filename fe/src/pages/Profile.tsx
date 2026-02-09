@@ -13,7 +13,7 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [profile, setProfile] = useState<{
     id: string;
     username: string;
@@ -285,6 +285,18 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
             ))
           ))}
       </div>
+
+      {/* Mobile-only logout at bottom of profile */}
+      {isOwnProfile && (
+        <div className="md:hidden mt-8 pb-8 pt-6 border-t border-white/10">
+          <button
+            onClick={logout}
+            className="w-full py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium transition-colors touch-manipulation"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
 
       {selectedLogEntry && (
         <LogEntryDetail
