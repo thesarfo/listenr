@@ -258,6 +258,7 @@ const App: React.FC = () => {
             currentView={currentView}
             onNavigate={handleNavigate}
             onLog={() => { setCurrentView('log-album'); setIsSidebarOpen(false); }}
+            isAdmin={user?.is_admin ?? false}
           />
         </>
       )}

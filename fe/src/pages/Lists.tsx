@@ -5,6 +5,45 @@ import { ApiList } from '../api/client';
 import { getAlbumCoverUrl } from '../utils/albumCover';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+function ListCover({ list }: { list: ApiList }) {
+  const preview = list.preview_albums ?? [];
+  if (preview.length === 1) {
+    const a = preview[0];
+    return (
+      <img
+        src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)}
+        className="w-full h-full object-cover transition-transform group-hover:scale-110"
+        alt={list.title}
+      />
+    );
+  }
+  if (preview.length >= 2) {
+    return (
+      <div className="w-full h-full grid grid-cols-2 grid-rows-2 gap-0.5 md:gap-1">
+        {[0, 1, 2, 3].map((i) => {
+          const a = preview[i];
+          if (!a) return <div key={i} className="bg-slate-800" aria-hidden />;
+          return (
+            <img
+              key={a.id}
+              src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)}
+              alt=""
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            />
+          );
+        })}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={getAlbumCoverUrl(list.cover_url, list.title, undefined)}
+      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+      alt={list.title}
+    />
+  );
+}
+
 interface ListsProps {
   onNavigate: NavigateFn;
 }
@@ -84,11 +123,7 @@ const Lists: React.FC<ListsProps> = ({ onNavigate }) => {
             >
               <div className="relative h-44 md:h-48 mb-4">
                 <div className="absolute inset-0 bg-slate-900 rounded-xl shadow-xl overflow-hidden border border-white/10">
-                  <img
-                    src={getAlbumCoverUrl(list.cover_url, list.title, undefined)}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                    alt={list.title}
-                  />
+                  <ListCover list={list} />
                 </div>
                 <button
                   type="button"

@@ -155,6 +155,8 @@ export const admin = {
   analytics: () => request<AdminAnalytics>('/admin/analytics'),
   deduplicateAlbums: () =>
     request<{ message: string; removed: number }>('/admin/deduplicate-albums', { method: 'POST' }),
+  deleteAlbum: (albumId: string) =>
+    request<{ message: string }>(`/admin/albums/${albumId}`, { method: 'DELETE' }),
 };
 
 // AI
@@ -232,6 +234,13 @@ export interface ApiLogEntry {
   album_cover?: string;
 }
 
+export interface ApiListPreviewAlbum {
+  id: string;
+  title: string;
+  artist: string;
+  cover_url?: string;
+}
+
 export interface ApiList {
   id: string;
   user_id: string;
@@ -239,6 +248,7 @@ export interface ApiList {
   title: string;
   description?: string;
   cover_url?: string;
+  preview_albums?: ApiListPreviewAlbum[];
   albums_count: number;
   likes: number;
   created_at?: string;

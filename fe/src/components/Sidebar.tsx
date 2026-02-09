@@ -7,15 +7,16 @@ interface SidebarProps {
   onLog: () => void;
   isOpen?: boolean;
   onClose?: () => void;
+  isAdmin?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onLog, isOpen = false, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onLog, isOpen = false, onClose, isAdmin = false }) => {
   const navItems: { id: View; label: string; icon: string }[] = [
     { id: 'home', label: 'Home', icon: 'home' },
     { id: 'diary', label: 'Diary', icon: 'menu_book' },
     { id: 'lists', label: 'Lists', icon: 'list_alt' },
     { id: 'profile', label: 'Profile', icon: 'person' },
-    { id: 'admin', label: 'Admin', icon: 'analytics' },
+    ...(isAdmin ? [{ id: 'admin' as View, label: 'Admin', icon: 'analytics' }] : []),
   ];
 
   return (

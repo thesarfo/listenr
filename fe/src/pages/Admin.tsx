@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { admin } from '../api/client';
+import { admin, albums } from '../api/client';
 import type { AdminAnalytics } from '../api/client';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { getAlbumCoverUrl } from '../utils/albumCover';
 import type { NavigateFn } from '../types';
 
 interface AdminProps {
@@ -20,6 +21,12 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [error, setError] = useState<string | null>(null);
   const [dedupLoading, setDedupLoading] = useState(false);
   const [dedupResult, setDedupResult] = useState<number | null>(null);
+  const [activeSection, setActiveSection] = useState<'albums' | null>(null);
+  const [albumsList, setAlbumsList] = useState<{ id: string; title?: string; artist?: string; cover_url?: string; year?: number }[]>([]);
+  const [albumsTotal, setAlbumsTotal] = useState(0);
+  const [albumsLoading, setAlbumsLoading] = useState(false);
+  const [albumsOffset, setAlbumsOffset] = useState(0);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   const loadAnalytics = () => admin.analytics().then(setData);
 
@@ -28,6 +35,38 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load analytics'))
       .finally(() => setLoading(false));
   }, []);
+
+  const loadAlbums = (offset = 0, append = false) => {
+    setAlbumsLoading(true);
+    albums.list(50, offset)
+      .then((r) => {
+        const items = (r.data || []) as { id: string; title?: string; artist?: string; cover_url?: string; year?: number }[];
+        setAlbumsList((prev) => append ? [...prev, ...items] : items);
+        setAlbumsTotal(r.total ?? 0);
+        setAlbumsOffset(offset + items.length);
+      })
+      .catch(() => setAlbumsList([]))
+      .finally(() => setAlbumsLoading(false));
+  };
+
+  useEffect(() => {
+    if (activeSection === 'albums') loadAlbums(0, false);
+  }, [activeSection]);
+
+  const handleDeleteAlbum = async (albumId: string, title: string) => {
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    setDeleteLoading(albumId);
+    try {
+      await admin.deleteAlbum(albumId);
+      setAlbumsList((prev) => prev.filter((a) => a.id !== albumId));
+      setAlbumsTotal((prev) => Math.max(0, prev - 1));
+      if (data) setData({ ...data, counts: { ...data.counts, albums: data.counts.albums - 1 } });
+    } catch {
+      // ignore
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   const handleDeduplicate = async () => {
     setDedupLoading(true);
@@ -66,6 +105,91 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
   const maxActivity = Math.max(1, ...data.activity_by_day.map((d) => d.total));
 
+  if (activeSection === 'albums') {
+    return (
+      <div className="max-w-[1200px] mx-auto py-6 px-4">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => setActiveSection(null)}
+            className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-lg">arrow_back</span>
+            Back to Dashboard
+          </button>
+        </div>
+        <h2 className="text-xl font-black uppercase tracking-tight mb-6">Albums ({albumsTotal})</h2>
+        {albumsLoading && albumsList.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : albumsList.length === 0 ? (
+          <p className="text-slate-500 py-8">No albums found.</p>
+        ) : (
+          <div className="space-y-2">
+            {albumsList.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-center gap-4 p-4 rounded-xl bg-card-dark border border-white/5 hover:border-white/10 transition-colors group"
+              >
+                <div
+                  className="size-12 rounded-lg overflow-hidden bg-white/5 shrink-0 cursor-pointer"
+                  onClick={() => onNavigate('album-detail', a.id)}
+                >
+                  <img
+                    src={getAlbumCoverUrl(a.cover_url, a.title, a.artist)}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:opacity-90"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onNavigate('album-detail', a.id)}>
+                  <p className="font-bold truncate text-white">{a.title || 'Untitled'}</p>
+                  <p className="text-xs text-slate-500 truncate">{a.artist || ''} {a.year ? `(${a.year})` : ''}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => onNavigate('album-detail', a.id)}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-bold transition-colors"
+                  >
+                    View / Edit
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteAlbum(a.id, a.title || 'Untitled'); }}
+                    disabled={!!deleteLoading}
+                    className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    {deleteLoading === a.id ? <LoadingSpinner size="sm" /> : <span className="material-symbols-outlined text-sm">delete</span>}
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+            {albumsList.length < albumsTotal && (
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={() => loadAlbums(albumsOffset, true)}
+                  disabled={albumsLoading}
+                  className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/5 text-sm font-bold disabled:opacity-50"
+                >
+                  {albumsLoading ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const cardSections: { label: string; value: number; icon: string; onClick?: () => void }[] = [
+    { label: 'Users', value: data.counts.users, icon: 'person' },
+    { label: 'Albums', value: data.counts.albums, icon: 'album', onClick: () => setActiveSection('albums') },
+    { label: 'Tracks', value: data.counts.tracks, icon: 'music_note' },
+    { label: 'Reviews', value: data.counts.reviews, icon: 'rate_review' },
+    { label: 'Log Entries', value: data.counts.log_entries, icon: 'menu_book' },
+    { label: 'Lists', value: data.counts.lists, icon: 'list' },
+    { label: 'Follows', value: data.counts.follows, icon: 'people' },
+  ];
+
   return (
     <div className="max-w-[1200px] mx-auto py-6 px-4">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -96,20 +220,17 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
       {/* Counts grid */}
       <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
-        {[
-          { label: 'Users', value: data.counts.users, icon: 'person' },
-          { label: 'Albums', value: data.counts.albums, icon: 'album' },
-          { label: 'Tracks', value: data.counts.tracks, icon: 'music_note' },
-          { label: 'Reviews', value: data.counts.reviews, icon: 'rate_review' },
-          { label: 'Log Entries', value: data.counts.log_entries, icon: 'menu_book' },
-          { label: 'Lists', value: data.counts.lists, icon: 'list' },
-          { label: 'Follows', value: data.counts.follows, icon: 'people' },
-        ].map(({ label, value, icon }) => (
-          <div key={label} className="bg-card-dark rounded-xl border border-white/5 p-4">
+        {cardSections.map(({ label, value, icon, onClick }) => (
+          <button
+            key={label}
+            type="button"
+            onClick={onClick ?? undefined}
+            className={`bg-card-dark rounded-xl border border-white/5 p-4 text-left w-full transition-all ${onClick ? 'cursor-pointer hover:border-primary/50 hover:bg-white/5' : 'cursor-default'}`}
+          >
             <span className="material-symbols-outlined text-primary text-xl mb-2">{icon}</span>
             <p className="text-2xl font-bold tabular-nums">{value.toLocaleString()}</p>
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-          </div>
+          </button>
         ))}
       </section>
 
