@@ -34,6 +34,9 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'log' | 'favorites'>('log');
+  const [followModal, setFollowModal] = useState<'followers' | 'following' | null>(null);
+  const [followModalUsers, setFollowModalUsers] = useState<{ id: string; username: string; avatar_url?: string }[]>([]);
+  const [followModalLoading, setFollowModalLoading] = useState(false);
 
   const isOwnProfile = !viewUsername || (user && viewUsername === user.username);
 
@@ -68,6 +71,17 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
     };
     load();
   }, [user?.id, viewUsername]);
+
+  const openFollowModal = (type: 'followers' | 'following') => {
+    if (!profile) return;
+    setFollowModal(type);
+    setFollowModalLoading(true);
+    setFollowModalUsers([]);
+    (type === 'followers' ? users.followers(profile.id) : users.followingList(profile.id))
+      .then((list) => setFollowModalUsers(list || []))
+      .catch(() => setFollowModalUsers([]))
+      .finally(() => setFollowModalLoading(false));
+  };
 
   const handleFollowToggle = async () => {
     if (!profile || isOwnProfile || followLoading) return;
@@ -173,8 +187,20 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
           {/* Stats row */}
           <div className="flex justify-center sm:justify-start gap-6 mb-4">
             <span><span className="font-semibold">{stats.albums_count.toLocaleString()}</span> albums</span>
-            <span><span className="font-semibold">{(stats.followers_count ?? 0).toLocaleString()}</span> followers</span>
-            <span><span className="font-semibold">{(stats.following_count ?? 0).toLocaleString()}</span> following</span>
+            <button
+              type="button"
+              onClick={() => openFollowModal('followers')}
+              className="hover:text-primary transition-colors text-left"
+            >
+              <span className="font-semibold">{(stats.followers_count ?? 0).toLocaleString()}</span> followers
+            </button>
+            <button
+              type="button"
+              onClick={() => openFollowModal('following')}
+              className="hover:text-primary transition-colors text-left"
+            >
+              <span className="font-semibold">{(stats.following_count ?? 0).toLocaleString()}</span> following
+            </button>
           </div>
           <p className="text-sm text-slate-300 max-w-md">{profile?.bio || user?.bio || 'No bio yet.'}</p>
         </div>
@@ -259,6 +285,52 @@ const Profile: React.FC<ProfileProps> = ({ onNavigate, viewUsername }) => {
           onClose={() => setSelectedLogEntry(null)}
           onNavigate={onNavigate}
         />
+      )}
+
+      {followModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setFollowModal(null)}>
+          <div
+            className="bg-background-dark border border-white/10 rounded-xl w-full max-w-md max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="font-bold text-lg">{followModal === 'followers' ? 'Followers' : 'Following'}</h3>
+              <button
+                type="button"
+                onClick={() => setFollowModal(null)}
+                className="p-2 rounded-lg hover:bg-white/5"
+                aria-label="Close"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-2">
+              {followModalLoading ? (
+                <p className="text-slate-500 text-sm py-8 text-center">Loading...</p>
+              ) : followModalUsers.length === 0 ? (
+                <p className="text-slate-500 text-sm py-8 text-center">
+                  {followModal === 'followers' ? 'No followers yet.' : 'Not following anyone yet.'}
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {followModalUsers.map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      onClick={() => { onNavigate('profile', undefined, u.username); setFollowModal(null); }}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors text-left"
+                    >
+                      <div className="size-10 rounded-full bg-white/10 overflow-hidden shrink-0 border border-white/10">
+                        {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : null}
+                      </div>
+                      <span className="font-semibold truncate">{u.username}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

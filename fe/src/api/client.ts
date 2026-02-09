@@ -186,6 +186,8 @@ export const users = {
   follow: (userId: string) => request<{ message: string }>(`/users/${userId}/follow`, { method: 'POST' }),
   unfollow: (userId: string) => request<{ message: string }>(`/users/${userId}/follow`, { method: 'DELETE' }),
   following: () => request<{ id: string; username: string; avatar_url?: string }[]>('/users/me/following'),
+  followers: (userId: string) => request<{ id: string; username: string; avatar_url?: string }[]>(`/users/${userId}/followers`),
+  followingList: (userId: string) => request<{ id: string; username: string; avatar_url?: string }[]>(`/users/${userId}/following`),
 };
 
 // Types matching backend responses
