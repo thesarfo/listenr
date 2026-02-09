@@ -83,7 +83,7 @@ const App: React.FC = () => {
   const renderView = () => {
     switch (currentView) {
       case 'login':
-        return <Login onNavigate={setCurrentView} />;
+        return <Login onNavigate={(view) => { setCurrentView(view); window.history.pushState({}, '', pathFor(view)); }} />;
       case 'onboarding':
         return <Onboarding onComplete={() => setCurrentView('home')} />;
       case 'home':
@@ -234,7 +234,7 @@ const App: React.FC = () => {
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {showNavigation && (
-          <Header onNavigate={handleNavigate} onLogout={logout} onMenuClick={() => setIsSidebarOpen(true)} />
+          <Header onNavigate={handleNavigate} navigate={navigate} onLogout={logout} onMenuClick={() => setIsSidebarOpen(true)} />
         )}
         
         <main className={`flex-1 overflow-y-auto custom-scrollbar ${!showNavigation ? '' : 'bg-charcoal/50'}`}>

@@ -66,6 +66,28 @@ export const albums = {
     request<{ data: ApiReview[]; total: number }>(`/albums/${id}/reviews?limit=${limit}&offset=${offset}`),
 };
 
+// Notifications
+export interface ApiNotification {
+  id: string;
+  type: string;
+  title: string | null;
+  body: string | null;
+  ref_id: string | null;
+  read: boolean;
+  created_at: string | null;
+}
+
+export const notifications = {
+  list: (limit = 20, offset = 0) =>
+    request<{ data: ApiNotification[]; total: number; unread_count: number }>(
+      `/notifications?limit=${limit}&offset=${offset}`
+    ),
+  markRead: (id: string) =>
+    request<{ message: string }>(`/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllRead: () =>
+    request<{ message: string }>('/notifications/read-all', { method: 'PATCH' }),
+};
+
 // Reviews
 export const reviews = {
   feed: (filter = 'all', limit = 20, offset = 0) =>
