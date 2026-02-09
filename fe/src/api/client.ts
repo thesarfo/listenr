@@ -131,6 +131,8 @@ export const explore = {
 // Admin
 export const admin = {
   analytics: () => request<AdminAnalytics>('/admin/analytics'),
+  deduplicateAlbums: () =>
+    request<{ message: string; removed: number }>('/admin/deduplicate-albums', { method: 'POST' }),
 };
 
 // AI

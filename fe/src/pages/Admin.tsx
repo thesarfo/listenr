@@ -18,13 +18,30 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [data, setData] = useState<AdminAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dedupLoading, setDedupLoading] = useState(false);
+  const [dedupResult, setDedupResult] = useState<number | null>(null);
+
+  const loadAnalytics = () => admin.analytics().then(setData);
 
   useEffect(() => {
-    admin.analytics()
-      .then(setData)
+    loadAnalytics()
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load analytics'))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleDeduplicate = async () => {
+    setDedupLoading(true);
+    setDedupResult(null);
+    try {
+      const res = await admin.deduplicateAlbums();
+      setDedupResult(res.removed);
+      await loadAnalytics();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Deduplication failed');
+    } finally {
+      setDedupLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -51,14 +68,30 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
   return (
     <div className="max-w-[1200px] mx-auto py-6 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-black tracking-tight uppercase">Admin Dashboard</h1>
-        <button
-          onClick={() => onNavigate('home')}
-          className="text-sm text-slate-400 hover:text-white transition-colors"
-        >
-          ← Back
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-black tracking-tight uppercase">Admin Dashboard</h1>
+          <button
+            onClick={() => onNavigate('home')}
+            className="text-sm text-slate-400 hover:text-white transition-colors"
+          >
+            ← Back
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleDeduplicate}
+            disabled={dedupLoading}
+            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-semibold transition-colors disabled:opacity-50"
+          >
+            {dedupLoading ? 'Running...' : 'Remove duplicate albums'}
+          </button>
+          {dedupResult !== null && (
+            <span className="text-sm text-primary">
+              Removed {dedupResult} duplicate(s)
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Counts grid */}
