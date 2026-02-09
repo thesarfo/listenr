@@ -1,8 +1,0 @@
-{
-  "name": "MusicBoxd - Your Personal Music Diary",
-  "description": "A high-fidelity music logging and discovery platform inspired by Letterboxd. Track your listening habits, review albums, and share your musical journey with friends.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
-}
