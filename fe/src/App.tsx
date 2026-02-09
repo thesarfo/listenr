@@ -12,6 +12,7 @@ import ListDetail from './pages/ListDetail';
 import LogAlbum from './pages/LogAlbum';
 import WriteReview from './pages/WriteReview';
 import Admin from './pages/Admin';
+import FollowingFeed from './pages/FollowingFeed';
 import NotFound from './pages/NotFound';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -41,6 +42,7 @@ function pathFor(view: View, albumId?: string, username?: string, listId?: strin
   if (view === 'list-detail' && listId) return `/l/${listId}`;
   if (view === 'album-detail' && albumId) return `/album/${albumId}`;
   if (view === 'lists') return '/lists';
+  if (view === 'following-feed') return '/activity';
   if (view === 'diary') return '/diary';
   if (view === 'log-album') return '/log';
   if (view === 'login') return '/login';
@@ -97,6 +99,8 @@ const App: React.FC = () => {
         return <Profile onNavigate={navigate} viewUsername={selectedProfileUsername} />;
       case 'lists':
         return <Lists onNavigate={navigate} />;
+      case 'following-feed':
+        return <FollowingFeed onNavigate={navigate} />;
       case 'list-detail':
         return (
           <ListDetail
@@ -166,11 +170,6 @@ const App: React.FC = () => {
           <main className="flex-1 overflow-y-auto custom-scrollbar bg-charcoal/50">
             <Profile onNavigate={guestNavigate} viewUsername={selectedProfileUsername} />
           </main>
-          <div className="border-t border-white/10 p-4 flex justify-center">
-            <button onClick={() => setCurrentView('login')} className="text-primary hover:underline text-sm font-bold">
-              Sign in to view your own profile
-            </button>
-          </div>
         </div>
       );
     }

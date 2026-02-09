@@ -32,6 +32,7 @@ type FeedFilter = 'all' | 'reviews';
 const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('all');
   const [feedReviews, setFeedReviews] = useState<Review[]>([]);
+  const [feedTotal, setFeedTotal] = useState(0);
   const [trending, setTrending] = useState<AlbumBrief[]>([]);
   const [popular, setPopular] = useState<AlbumBrief[]>([]);
   const [recommended, setRecommended] = useState<{ id: string; username: string; avatar_url?: string }[]>([]);
@@ -73,8 +74,9 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     setFeedLoading(true);
     (async () => {
       try {
-        const feedRes = await reviews.feed(feedFilter);
+        const feedRes = await reviews.feed(feedFilter, 5, 0);
         if (!ok) return;
+        setFeedTotal(feedRes.total ?? 0);
         setFeedReviews(
           (feedRes.data || []).map((r) => ({
             id: r.id,
@@ -162,6 +164,14 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   </div>
                 </div>
               ))}
+              {feedTotal > 5 && (
+                <button
+                  onClick={() => onNavigate('following-feed')}
+                  className="w-full py-3 text-sm font-bold text-primary hover:bg-white/5 rounded-xl border border-white/10 transition-colors"
+                >
+                  View more activity
+                </button>
+              )}
             </div>
           ) : (
             <p className="text-slate-500 text-sm py-4">Follow users to see their reviews and listening activity here.</p>

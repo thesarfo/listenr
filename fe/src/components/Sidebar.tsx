@@ -13,6 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, onLog, isOpen = false, onClose, isAdmin = false }) => {
   const navItems: { id: View; label: string; icon: string }[] = [
     { id: 'home', label: 'Home', icon: 'home' },
+    { id: 'following-feed', label: 'Activity', icon: 'group' },
     { id: 'diary', label: 'Diary', icon: 'menu_book' },
     { id: 'lists', label: 'Lists', icon: 'list_alt' },
     { id: 'profile', label: 'Profile', icon: 'person' },
