@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { admin, albums } from '../api/client';
 import type { AdminAnalytics } from '../api/client';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -26,6 +26,7 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [albumsTotal, setAlbumsTotal] = useState(0);
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const [albumsOffset, setAlbumsOffset] = useState(0);
+  const [albumsSearchQuery, setAlbumsSearchQuery] = useState('');
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   const loadAnalytics = () => admin.analytics().then(setData);
@@ -36,9 +37,13 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const loadAlbums = (offset = 0, append = false) => {
+  const loadAlbums = useCallback((offset = 0, append = false, query = albumsSearchQuery) => {
     setAlbumsLoading(true);
-    albums.list(50, offset)
+    const limit = 50;
+    const promise = query.trim()
+      ? albums.search(query.trim(), limit, offset)
+      : albums.list(limit, offset);
+    promise
       .then((r) => {
         const items = (r.data || []) as { id: string; title?: string; artist?: string; cover_url?: string; year?: number }[];
         setAlbumsList((prev) => append ? [...prev, ...items] : items);
@@ -47,11 +52,13 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       })
       .catch(() => setAlbumsList([]))
       .finally(() => setAlbumsLoading(false));
-  };
+  }, [albumsSearchQuery]);
 
   useEffect(() => {
-    if (activeSection === 'albums') loadAlbums(0, false);
-  }, [activeSection]);
+    if (activeSection !== 'albums') return;
+    const timer = setTimeout(() => loadAlbums(0, false), albumsSearchQuery ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [activeSection, albumsSearchQuery]);
 
   const handleDeleteAlbum = async (albumId: string, title: string) => {
     if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
@@ -117,7 +124,29 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
             Back to Dashboard
           </button>
         </div>
-        <h2 className="text-xl font-black uppercase tracking-tight mb-6">Albums ({albumsTotal})</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h2 className="text-xl font-black uppercase tracking-tight">Albums ({albumsTotal})</h2>
+          <div className="relative flex items-center">
+            <span className="material-symbols-outlined absolute left-3 text-slate-500 text-lg">search</span>
+            <input
+              type="text"
+              placeholder="Search by title or artist..."
+              value={albumsSearchQuery}
+              onChange={(e) => setAlbumsSearchQuery(e.target.value)}
+              className="w-full sm:w-64 py-2 pl-10 pr-4 rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+            />
+            {albumsSearchQuery && (
+              <button
+                type="button"
+                onClick={() => setAlbumsSearchQuery('')}
+                className="absolute right-3 p-1 text-slate-500 hover:text-white"
+                aria-label="Clear search"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            )}
+          </div>
+        </div>
         {albumsLoading && albumsList.length === 0 ? (
           <div className="flex justify-center py-12">
             <LoadingSpinner size="lg" />
@@ -166,7 +195,7 @@ const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
             {albumsList.length < albumsTotal && (
               <div className="flex justify-center pt-4">
                 <button
-                  onClick={() => loadAlbums(albumsOffset, true)}
+                  onClick={() => loadAlbums(albumsOffset, true, albumsSearchQuery)}
                   disabled={albumsLoading}
                   className="px-4 py-2 rounded-lg border border-white/20 hover:bg-white/5 text-sm font-bold disabled:opacity-50"
                 >
