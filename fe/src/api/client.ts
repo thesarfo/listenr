@@ -44,6 +44,8 @@ export const auth = {
       body: JSON.stringify(data),
     }),
   me: () => request<{ id: string; username: string; email: string; avatar_url?: string; bio?: string }>('/auth/me'),
+  /** Full URL to initiate Google OAuth (redirects to Google, then back to callback). */
+  googleAuthUrl: () => `${API_BASE}${API_PREFIX}/auth/google`,
 };
 
 // Albums
