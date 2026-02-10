@@ -104,14 +104,20 @@ const WriteReview: React.FC<WriteReviewProps> = ({ albumId, onCancel, onPost }) 
           <p className="text-primary text-xs font-black uppercase tracking-[0.3em]">{rating}.0 Stars</p>
         </div>
 
-        <div className="w-full">
+        <div className="w-full space-y-3">
+          <label htmlFor="review-content" className="flex items-center gap-2 text-sm font-bold text-slate-400 uppercase tracking-wider">
+            <span className="material-symbols-outlined text-lg">rate_review</span>
+            Add a review
+          </label>
           <textarea
-            className="w-full bg-transparent border-none focus:ring-0 text-2xl md:text-3xl font-body-serif italic text-white/90 placeholder:text-white/10 min-h-[300px] leading-relaxed resize-none"
-            placeholder="Write your thoughts..."
+            id="review-content"
+            className="w-full bg-white/5 border border-white/20 rounded-2xl px-5 py-4 text-lg md:text-xl font-body-serif text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary focus:border-primary min-h-[140px] leading-relaxed resize-none transition-all"
+            placeholder="What did you think? Share your thoughts on this album..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
           />
+          <p className="text-xs text-slate-500">Optional — leave blank for a simple log</p>
         </div>
       </main>
 
